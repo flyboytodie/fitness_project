@@ -69,12 +69,12 @@ const Utils = {
     toast.style.transition = 'all 0.3s ease-out';
     
     if (actionText && actionCallback) {
+      const toastId = 'toast-' + Date.now();
       toast.innerHTML = `
         <span style="flex: 1; font-size: 14px;">${message}</span>
-        <button style="background: #2563EB; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; margin-left: 12px;">${actionText}</button>
+        <button style="background: #2563EB; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; margin-left: 12px;" onclick="window['toastCallback_${toastId}']()">${actionText}</button>
       `;
-      const button = toast.querySelector('button');
-      button.onclick = () => {
+      window['toastCallback_' + toastId] = () => {
         toast.remove();
         actionCallback();
       };
@@ -345,6 +345,188 @@ const Utils = {
       data: [...data].reverse().slice(start, end),
       totalPages
     };
+  },
+
+  /**
+   * 获取突破类型信息
+   * @param {string} type - 突破类型
+   * @returns {Object} - 突破类型信息
+   */
+  getBreakTypeInfo(type) {
+    switch (type) {
+      case 'weight': return { icon: '💪', label: '重量突破', color: '#EF4444', bgColor: 'rgba(239, 68, 68, 0.1)' };
+      case 'reps': return { icon: '🔢', label: '次数突破', color: '#3B82F6', bgColor: 'rgba(59, 130, 246, 0.1)' };
+      case 'volume': return { icon: '📈', label: '总量突破', color: '#10B981', bgColor: 'rgba(16, 185, 129, 0.1)' };
+      case 'first': return { icon: '🎯', label: '首项纪录', color: '#8B5CF6', bgColor: 'rgba(139, 92, 246, 0.1)' };
+      default: return { icon: '🏆', label: '个人纪录', color: '#F59E0B', bgColor: 'rgba(245, 158, 11, 0.1)' };
+    }
+  },
+
+  /**
+   * 格式化日期为中文格式（修复版）
+   * @param {string} dateStr - ISO日期字符串
+   * @returns {string} - 格式化后的日期字符串
+   */
+  formatDateSafe(dateStr) {
+    if (!dateStr) return '';
+    try {
+      const date = new Date(dateStr);
+      if (isNaN(date.getTime())) return '';
+      const month = date.getMonth() + 1;
+      const day = date.getDate();
+      const weekDays = ['日', '一', '二', '三', '四', '五', '六'];
+      const weekDay = weekDays[date.getDay()];
+      return `${month}月${day}日 周${weekDay}`;
+    } catch(e) {
+      return '';
+    }
+  },
+
+  /**
+   * 获取动作的历史记录列表
+   * @param {string} exerciseName - 动作名称
+   * @returns {Array} - 历史记录列表
+   */
+  getExerciseHistory(exerciseName) {
+    return appData.workouts
+      .flatMap(w => w.exercises
+        .filter(e => e.name === exerciseName)
+        .map(e => ({
+          date: w.date,
+          weight: e.weight,
+          sets: e.sets,
+          maxReps: Math.max(...e.sets),
+          volume: e.weight * Math.max(...e.sets)
+        })))
+      .sort((a, b) => new Date(b.date) - new Date(a.date));
+  },
+
+  /**
+   * 分析PR的突破详情（用于个人纪录页面）
+   * @param {Object} pr - PR记录
+   * @returns {Object} - 突破详情
+   */
+  analyzePRDetail(pr) {
+    const history = this.getExerciseHistory(pr.name);
+    if (history.length <= 1) {
+      return null;
+    }
+    
+    const currentIndex = history.findIndex(h => h.date === pr.date);
+    if (currentIndex === -1 || currentIndex === history.length - 1) {
+      return null;
+    }
+    
+    const previous = history[currentIndex + 1];
+    const improvement = {};
+    
+    if (pr.type === 'weight') {
+      improvement.value = `+${(pr.weight - previous.weight).toFixed(1)}kg`;
+      improvement.percent = previous.weight > 0 ? ((pr.weight - previous.weight) / previous.weight * 100).toFixed(0) + '%' : '';
+    } else if (pr.type === 'reps') {
+      improvement.value = `+${pr.reps - previous.maxReps}次`;
+      improvement.percent = previous.maxReps > 0 ? ((pr.reps - previous.maxReps) / previous.maxReps * 100).toFixed(0) + '%' : '';
+    } else if (pr.type === 'volume') {
+      const currentVolume = pr.weight * pr.reps;
+      const prevVolume = previous.weight * previous.maxReps;
+      improvement.value = `+${currentVolume - prevVolume}kg`;
+      improvement.percent = prevVolume > 0 ? ((currentVolume - prevVolume) / prevVolume * 100).toFixed(0) + '%' : '';
+    }
+    
+    return {
+      previous: previous,
+      improvement: improvement,
+      historyCount: history.length
+    };
+  },
+
+  /**
+   * 分析训练记录的突破详情
+   * @param {Object} workout - 训练记录
+   * @returns {Array} - 突破详情数组
+   */
+  analyzeWorkoutProgress(workout) {
+    const prs = Storage.getPRs();
+    const progressDetails = [];
+    
+    workout.exercises.forEach(exercise => {
+      const maxReps = Math.max(...exercise.sets);
+      const currentVolume = exercise.weight * maxReps;
+      const existingPR = prs[exercise.name];
+      
+      if (existingPR && existingPR.date === workout.date) {
+        const type = existingPR.type;
+        const info = this.getBreakTypeInfo(type);
+        
+        let previousData = null;
+        let improvement = null;
+        
+        if (type !== 'first') {
+          const previousRecords = appData.workouts
+            .filter(w => w.date < workout.date)
+            .map(w => ({
+              ...w,
+              exercises: w.exercises.filter(e => e.name === exercise.name)
+            }))
+            .filter(w => w.exercises.length > 0)
+            .sort((a, b) => {
+              const volA = a.exercises[0].weight * Math.max(...a.exercises[0].sets);
+              const volB = b.exercises[0].weight * Math.max(...b.exercises[0].sets);
+              return volB - volA;
+            });
+          
+          if (previousRecords.length > 0) {
+            const prevWorkout = previousRecords[0];
+            const prev = prevWorkout.exercises[0];
+            const prevMaxReps = Math.max(...prev.sets);
+            previousData = {
+              weight: prev.weight,
+              reps: prevMaxReps,
+              sets: prev.sets,
+              volume: prev.weight * prevMaxReps,
+              date: prevWorkout.date
+            };
+            
+            if (type === 'weight') {
+              improvement = {
+                type: 'weight',
+                value: `+${(exercise.weight - previousData.weight).toFixed(1)}kg`,
+                percent: previousData.weight > 0 ? ((exercise.weight - previousData.weight) / previousData.weight * 100).toFixed(0) + '%' : ''
+              };
+            } else if (type === 'reps') {
+              improvement = {
+                type: 'reps',
+                value: `+${maxReps - previousData.reps}次`,
+                percent: previousData.reps > 0 ? ((maxReps - previousData.reps) / previousData.reps * 100).toFixed(0) + '%' : ''
+              };
+            } else if (type === 'volume') {
+              improvement = {
+                type: 'volume',
+                value: `+${currentVolume - previousData.volume}kg`,
+                percent: previousData.volume > 0 ? ((currentVolume - previousData.volume) / previousData.volume * 100).toFixed(0) + '%' : ''
+              };
+            }
+          }
+        }
+        
+        progressDetails.push({
+          exerciseName: exercise.name,
+          current: {
+            weight: exercise.weight,
+            reps: maxReps,
+            sets: exercise.sets,
+            volume: currentVolume,
+            date: workout.date
+          },
+          previous: previousData,
+          type: type,
+          info: info,
+          improvement: improvement
+        });
+      }
+    });
+    
+    return progressDetails;
   }
 };
 

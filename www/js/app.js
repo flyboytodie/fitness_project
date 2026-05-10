@@ -229,6 +229,7 @@ function renderPRPage() {
             <div style="margin-top: 12px;">
               ${items.map((pr, index) => {
                 const breakType = getBreakTypeInfo(pr.type);
+                const prDetail = Utils.analyzePRDetail(pr);
                 return `
                   <div class="pr-item" style="border-left: 4px solid ${catInfo.color};">
                     <div style="flex: 1;">
@@ -242,6 +243,30 @@ function renderPRPage() {
                         ${Utils.formatDate(pr.date)}
                         ${index === 0 && items.length > 1 ? '🏆 本组最高' : ''}
                       </div>
+                      ${prDetail && prDetail.improvement.value ? `
+                        <div class="pr-improvement" style="margin-top: 8px; padding: 8px; background: ${breakType.color}10; border-radius: 6px;">
+                          <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-size: 12px; color: ${breakType.color}; font-weight: 500;">
+                              ${breakType.icon} 超越 ${Utils.formatDateSafe(prDetail.previous.date)}
+                            </span>
+                            <span style="font-size: 13px; font-weight: 600; color: ${breakType.color};">
+                              ${prDetail.improvement.value}
+                              ${prDetail.improvement.percent ? `(${prDetail.improvement.percent})` : ''}
+                            </span>
+                          </div>
+                          <div style="display: flex; gap: 12px; margin-top: 6px; font-size: 12px;">
+                            <span class="pr-history-previous">${prDetail.previous.weight}kg × ${prDetail.previous.maxReps}次</span>
+                            <span style="color: var(--text-muted);">→</span>
+                            <span class="pr-history-current">${pr.weight}kg × ${pr.reps}次</span>
+                          </div>
+                        </div>
+                      ` : pr.type === 'first' ? `
+                        <div class="pr-improvement" style="margin-top: 8px; padding: 8px; background: ${breakType.color}10; border-radius: 6px;">
+                          <span style="font-size: 12px; color: ${breakType.color}; font-weight: 500;">
+                            ${breakType.icon} 首次完成该动作
+                          </span>
+                        </div>
+                      ` : ''}
                     </div>
                     <div class="pr-info">
                       <span class="pr-value">${pr.weight}kg × ${pr.reps}次</span>
@@ -518,6 +543,9 @@ function renderStatsPage() {
       ${weeklyData.labels.length > 0 ? `
       <div class="card">
         <div class="card-title">训练量趋势</div>
+        <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px; padding-left: 4px;">
+          📊 按周统计 · 计算方式: 重量(kg) × 该动作每组最大次数
+        </div>
         <div class="chart-container">
           <canvas id="workoutTrendChart"></canvas>
         </div>
@@ -527,25 +555,11 @@ function renderStatsPage() {
       ${Object.keys(partCount).length > 0 ? `
       <div class="card">
         <div class="card-title">部位分布</div>
+        <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px; padding-left: 4px;">
+          📈 统计各部位训练次数 · 一个训练可能包含多个部位
+        </div>
         <div class="chart-container">
           <canvas id="partDistributionChart"></canvas>
-        </div>
-      </div>
-      ` : ''}
-      
-      ${prCount > 0 ? `
-      <div class="card">
-        <div class="card-title">🏆 个人纪录详情</div>
-        <div style="margin-top: 12px;">
-          ${Object.entries(prs).sort((a, b) => new Date(b[1].date) - new Date(a[1].date)).map(([name, pr]) => `
-            <div class="pr-item">
-              <div class="pr-name">${name}</div>
-              <div class="pr-info">
-                <span class="pr-value">${pr.weight}kg × ${pr.reps}次</span>
-                <span class="pr-date">${Utils.formatDate(pr.date)}</span>
-              </div>
-            </div>
-          `).join('')}
         </div>
       </div>
       ` : ''}
@@ -585,18 +599,43 @@ function renderStatsPage() {
       ${progressData.length > 0 ? `
       <div class="card">
         <div class="card-title">进步追踪</div>
-        ${progressData.map(p => `
-          <div class="exercise-item" style="margin-top: 8px;">
-            <div class="exercise-header">
-              <span class="exercise-name">${p.exercise}</span>
-              <span class="progress-badge ${p.type}">${p.badge}</span>
+        <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px; padding-left: 4px;">
+          🎯 自动检测您的训练突破 · 帮助您追踪长期进步
+        </div>
+        ${progressData.map(p => {
+          const typeColors = { weight: '#EF4444', volume: '#10B981' };
+          const bgColor = typeColors[p.type] || '#64748B';
+          return `
+          <div class="progress-item">
+            <div class="progress-header">
+              <span class="progress-exercise">${p.exercise}</span>
+              <span class="progress-type" style="background: ${bgColor}20; color: ${bgColor};">${p.badge} ${p.type === 'weight' ? '重量突破' : '总量突破'}</span>
             </div>
-            <div style="font-size: 13px; color: var(--text-muted);">
-              ${p.date}: ${p.previous} → ${p.current}
+            <div class="progress-compare-card" style="border-left: 3px solid ${bgColor};">
+              <div class="compare-row dates">
+                <span class="compare-old">${p.previousDate}</span>
+                <span class="compare-arrow-large">→</span>
+                <span class="compare-new">${p.date}</span>
+              </div>
+              <div class="compare-row main">
+                <span class="compare-old">${p.previous}</span>
+                <span class="compare-arrow-large">→</span>
+                <span class="compare-new" style="color: ${bgColor};">${p.current}</span>
+              </div>
+              ${p.previousSets && p.previousSets !== '-' ? `
+              <div class="compare-row sets">
+                <span class="compare-old">${p.previousSets}</span>
+                <span class="compare-arrow-large">→</span>
+                <span class="compare-new">${p.currentSets}</span>
+              </div>
+              ` : ''}
+              <div class="compare-row message">
+                <span style="color: ${bgColor}; font-weight: 600;">${p.message}</span>
+              </div>
             </div>
-            ${p.message ? `<div class="exercise-notes">${p.message}</div>` : ''}
           </div>
-        `).join('')}
+          `;
+        }).join('')}
       </div>
       ` : ''}
       
@@ -637,7 +676,8 @@ function getWeeklyWorkoutData() {
     
     const weeklyVolume = weekWorkouts.reduce((sum, w) => {
       return sum + w.exercises.reduce((exSum, ex) => {
-        return exSum + ex.weight * ex.totalReps;
+        const maxReps = Math.max(...ex.sets);
+        return exSum + ex.weight * maxReps;
       }, 0);
     }, 0);
     
@@ -748,45 +788,87 @@ function detectAllProgress() {
       if (!exerciseHistory[e.name]) {
         exerciseHistory[e.name] = [];
       }
+      const maxReps = Math.max(...e.sets);
+      const volume = e.weight * maxReps;
       exerciseHistory[e.name].push({
         date: w.date,
         weight: e.weight,
+        maxReps: maxReps,
         totalReps: e.totalReps,
-        sets: e.sets.length
+        volume: volume,
+        sets: e.sets.join('/')
       });
     });
   });
   
   Object.entries(exerciseHistory).forEach(([name, history]) => {
-    for (let i = 0; i < history.length - 1; i++) {
-      const current = history[i];
-      const previous = history[i + 1];
+    let bestWeight = 0;
+    let bestVolume = 0;
+    let prevRecord = null;
+    
+    for (let i = history.length - 1; i >= 0; i--) {
+      const record = history[i];
+      const hasWeightProgress = record.weight > bestWeight;
+      const hasVolumeProgress = !hasWeightProgress && record.volume > bestVolume;
       
-      if (current.weight > previous.weight) {
-        progress.push({
-          exercise: name,
-          date: Utils.formatDate(current.date),
-          previous: previous.weight + 'kg',
-          current: current.weight + 'kg',
-          type: 'weight',
-          badge: '🔥',
-          message: '加重 ' + (current.weight - previous.weight) + 'kg'
-        });
-      } else if (current.weight === previous.weight && current.totalReps > previous.totalReps) {
-        progress.push({
-          exercise: name,
-          date: Utils.formatDate(current.date),
-          previous: previous.totalReps + '次',
-          current: current.totalReps + '次',
-          type: 'reps',
-          badge: '💪',
-          message: '多做 ' + (current.totalReps - previous.totalReps) + ' 次'
-        });
+      if (hasWeightProgress || hasVolumeProgress) {
+        if (prevRecord && prevRecord.date === record.date) {
+          prevRecord = record;
+          if (hasWeightProgress) {
+            bestWeight = record.weight;
+            bestVolume = record.volume;
+          }
+          continue;
+        }
+        
+        const prevWeight = bestWeight;
+        const prevVolume = bestVolume;
+        
+        if (hasWeightProgress) {
+          bestWeight = record.weight;
+          bestVolume = record.volume;
+          
+          if (prevWeight > 0) {
+            const prevRec = history.find(h => h.weight === prevWeight && h.date < record.date);
+            progress.push({
+              exercise: name,
+              date: Utils.formatDate(record.date),
+              previousDate: prevRec ? Utils.formatDate(prevRec.date) : '-',
+              previous: prevWeight + 'kg',
+              current: record.weight + 'kg',
+              previousSets: prevRec ? prevRec.sets : '-',
+              currentSets: record.sets,
+              type: 'weight',
+              badge: '🔥',
+              message: '加重 ' + (record.weight - prevWeight).toFixed(1) + 'kg'
+            });
+          }
+        } else if (hasVolumeProgress) {
+          bestVolume = record.volume;
+          
+          if (prevVolume > 0) {
+            const prevRec = history.find(h => h.volume === prevVolume && h.date < record.date);
+            progress.push({
+              exercise: name,
+              date: Utils.formatDate(record.date),
+              previousDate: prevRec ? Utils.formatDate(prevRec.date) : '-',
+              previous: prevVolume + 'kg',
+              current: record.volume + 'kg',
+              previousSets: prevRec ? prevRec.sets : '-',
+              currentSets: record.sets,
+              type: 'volume',
+              badge: '📈',
+              message: '总量提升 ' + (record.volume - prevVolume) + 'kg'
+            });
+          }
+        }
+        
+        prevRecord = record;
       }
     }
   });
   
-  return progress.slice(0, 10);
+  return progress.sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 10);
 }
 
 /**

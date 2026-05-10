@@ -4,74 +4,11 @@
  */
 
 const BodyModule = {
-  isEditing: false,
-  
   // 当前页码
   currentPage: 1,
   
   // 每页大小
   pageSize: 10,
-  
-  /**
-   * 切换编辑模式
-   */
-  toggleEditMode() {
-    this.isEditing = !this.isEditing;
-    
-    if (this.isEditing) {
-      // 进入编辑模式
-      navigateTo('body');
-    } else {
-      // 保存编辑
-      this.saveCurrentStats();
-      navigateTo('body');
-    }
-  },
-  
-  /**
-   * 保存当前状态编辑
-   */
-  saveCurrentStats() {
-    const weight = parseFloat(document.getElementById('editWeight')?.value);
-    const height = parseInt(document.getElementById('editHeight')?.value);
-    const chest = parseInt(document.getElementById('editChest')?.value);
-    const waist = parseInt(document.getElementById('editWaist')?.value);
-    const hips = parseInt(document.getElementById('editHips')?.value);
-    const leg = parseInt(document.getElementById('editLeg')?.value);
-    
-    let saved = false;
-    
-    // 保存身高到设置
-    if (height && height !== appData.settings.height) {
-      appData.settings.height = height;
-      Storage.updateSettings({ height });
-      saved = true;
-    }
-    
-    // 保存身体数据
-    if (weight || chest || waist || hips || leg) {
-      let bodyData = appData.body.length > 0 
-        ? { ...appData.body[appData.body.length - 1] }
-        : { date: new Date().toISOString().split('T')[0] };
-      
-      if (weight) bodyData.weight = weight;
-      if (chest) bodyData.chest = chest;
-      if (waist) bodyData.waist = waist;
-      if (hips) bodyData.hips = hips;
-      if (leg) bodyData.leg = leg;
-      
-      if (appData.body.length > 0) {
-        Storage.updateBody(bodyData.date, bodyData);
-      } else {
-        Storage.addBody(bodyData);
-      }
-      saved = true;
-    }
-    
-    if (saved) {
-      Utils.showToast('数据保存成功！');
-    }
-  },
   
   /**
    * 渲染身体数据页面
@@ -113,20 +50,13 @@ const BodyModule = {
         <div class="card body-status-card">
           <div class="card-title-row">
             <span>当前状态</span>
-            <button class="btn btn-sm btn-secondary" onclick="BodyModule.toggleEditMode()">
-              ${this.isEditing ? '✓ 保存' : '✏️ 编辑'}
-            </button>
           </div>
           
           <div class="body-status-main">
             <div class="weight-display">
-              ${this.isEditing ? `
-                <input type="number" class="weight-input" id="editWeight" value="${latestBody?.weight || ''}" placeholder="体重(kg)" step="0.1">
-              ` : `
-                <div class="weight-value">${latestBody ? latestBody.weight : '—'}</div>
-                <div class="weight-unit">kg</div>
-              `}
-              ${!this.isEditing && weightChange !== '0' ? `
+              <div class="weight-value">${latestBody ? latestBody.weight : '—'}</div>
+              <div class="weight-unit">kg</div>
+              ${weightChange !== '0' ? `
                 <div class="weight-change ${parseFloat(weightChange) > 0 ? 'positive' : 'negative'}">
                   ${parseFloat(weightChange) > 0 ? '↑' : '↓'} ${Math.abs(parseFloat(weightChange))}kg
                 </div>
@@ -145,72 +75,52 @@ const BodyModule = {
             <div class="stat-item">
               <div class="stat-icon">📏</div>
               <div class="stat-info">
-                ${this.isEditing ? `
-                  <div class="stat-label">身高(cm)</div>
-                  <input type="number" class="stat-input" id="editHeight" value="${appData.settings.height || ''}" placeholder="请输入">
-                ` : `
-                  <div class="stat-value">${appData.settings.height || '—'}</div>
-                  <div class="stat-label">身高(cm)</div>
-                `}
+                <div class="stat-value">${appData.settings.height || '—'}</div>
+                <div class="stat-label">身高(cm)</div>
               </div>
             </div>
             <div class="stat-item">
               <div class="stat-icon">🔥</div>
               <div class="stat-info">
-                ${this.isEditing ? `
-                  <div class="stat-label">基础代谢</div>
-                  <input type="number" class="stat-input" id="editBMR" value="${bmr > 0 ? bmr : ''}" placeholder="请输入">
-                ` : `
-                  <div class="stat-value">${bmr > 0 ? bmr : '—'}</div>
-                  <div class="stat-label">基础代谢</div>
-                `}
+                <div class="stat-value">${bmr > 0 ? bmr : '—'}</div>
+                <div class="stat-label">基础代谢</div>
               </div>
             </div>
-            ${latestBody?.chest || this.isEditing ? `
             <div class="stat-item">
               <div class="stat-icon">💪</div>
               <div class="stat-info">
-                ${this.isEditing ? `
-                  <div class="stat-label">胸围(cm)</div>
-                  <input type="number" class="stat-input" id="editChest" value="${latestBody?.chest || ''}" placeholder="请输入">
-                ` : `
-                  <div class="stat-value">${latestBody?.chest || '—'}</div>
-                  <div class="stat-label">胸围(cm)</div>
-                `}
+                <div class="stat-value">${latestBody?.chest || '—'}</div>
+                <div class="stat-label">胸围(cm)</div>
               </div>
             </div>
-            ` : ''}
-            ${latestBody?.waist || this.isEditing ? `
             <div class="stat-item">
               <div class="stat-icon">🩳</div>
               <div class="stat-info">
-                ${this.isEditing ? `
-                  <div class="stat-label">腰围(cm)</div>
-                  <input type="number" class="stat-input" id="editWaist" value="${latestBody?.waist || ''}" placeholder="请输入">
-                ` : `
-                  <div class="stat-value">${latestBody?.waist || '—'}</div>
-                  <div class="stat-label">腰围(cm)</div>
-                `}
+                <div class="stat-value">${latestBody?.waist || '—'}</div>
+                <div class="stat-label">腰围(cm)</div>
               </div>
             </div>
-            ` : ''}
-            ${this.isEditing ? `
             <div class="stat-item">
               <div class="stat-icon">🍑</div>
               <div class="stat-info">
+                <div class="stat-value">${latestBody?.hips || '—'}</div>
                 <div class="stat-label">臀围(cm)</div>
-                <input type="number" class="stat-input" id="editHips" value="${latestBody?.hips || ''}" placeholder="请输入">
               </div>
             </div>
             <div class="stat-item">
               <div class="stat-icon">🦵</div>
               <div class="stat-info">
+                <div class="stat-value">${latestBody?.leg || '—'}</div>
                 <div class="stat-label">大腿(cm)</div>
-                <input type="number" class="stat-input" id="editLeg" value="${latestBody?.leg || ''}" placeholder="请输入">
               </div>
             </div>
-            ` : ''}
           </div>
+          
+          ${!latestBody ? `
+          <div style="margin-top: 16px; padding: 12px; background: rgba(59, 130, 246, 0.1); border-radius: 8px; text-align: center;">
+            <div style="font-size: 14px; color: #3B82F6; font-weight: 500;">📝 点击上方「添加记录」按钮，记录您的首次身体数据</div>
+          </div>
+          ` : ''}
         </div>
         
         <!-- 体重趋势图表 -->
@@ -395,6 +305,7 @@ const BodyModule = {
         appData.body.push(record);
         Storage.addBody(record);
         Utils.showToast('已恢复身体数据');
+        navigateTo('body');
       });
       
       navigateTo('body');

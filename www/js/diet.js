@@ -256,6 +256,7 @@ const DietModule = {
         appData.diet.push(record);
         Storage.addDiet(record);
         Utils.showToast('已恢复饮食记录');
+        navigateTo('diet');
       });
       
       navigateTo('diet');

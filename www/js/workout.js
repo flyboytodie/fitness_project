@@ -42,20 +42,63 @@ const WorkoutModule = {
         
         ${workouts.length > 0 ? `
           <div class="workout-list">
-            ${workouts.map(w => `
-              <div class="card" onclick="WorkoutModule.showWorkoutDetail('${w.date}')">
+            ${workouts.map(w => {
+              const progressDetails = Utils.analyzeWorkoutProgress(w);
+              const hasProgress = progressDetails.length > 0;
+              return `
+              <div class="card workout-card" onclick="WorkoutModule.showWorkoutDetail('${w.date}')">
                 <div class="workout-header">
                   <div class="workout-date">${Utils.formatDate(w.date)}</div>
                   <div class="workout-parts">${w.parts.join('+')}</div>
+                  ${hasProgress ? `
+                    <div class="workout-pr-badge">
+                      🏆 ${progressDetails.length}项突破
+                    </div>
+                  ` : ''}
                 </div>
                 <div class="workout-content">
-                  ${w.exercises.map(e => `
-                    <div class="exercise-row">
+                  ${w.exercises.map(e => {
+                    const progress = progressDetails.find(p => p.exerciseName === e.name);
+                    return `
+                    <div class="exercise-row ${progress ? 'has-progress' : ''}">
                       <span class="exercise-name">${e.name}</span>
                       <span class="exercise-weight">${e.weight}kg</span>
                       <span class="exercise-reps">${e.sets.join('/')}</span>
+                      ${progress ? `
+                        <span class="progress-badge" style="background: ${progress.info.bgColor}; color: ${progress.info.color};">
+                          ${progress.info.icon}
+                        </span>
+                      ` : ''}
                     </div>
-                  `).join('')}
+                    ${progress ? `
+                      <div class="progress-detail" style="border-left: 3px solid ${progress.info.color};">
+                        <div class="progress-header">
+                          <span style="color: ${progress.info.color}; font-weight: 600;">${progress.info.icon} ${progress.info.label}</span>
+                          ${progress.improvement ? `
+                            <span style="color: ${progress.info.color};">${progress.improvement.value}</span>
+                          ` : ''}
+                        </div>
+                        <div class="progress-compare">
+                          <div class="compare-item">
+                            <span class="compare-label">当前纪录</span>
+                            <span class="compare-value">${progress.current.weight}kg</span>
+                            <span class="compare-sets">${progress.current.sets.join('/')}</span>
+                            <span class="compare-volume">(${progress.current.volume}kg)</span>
+                          </div>
+                          ${progress.previous ? `
+                            <div class="compare-arrow">→</div>
+                            <div class="compare-item previous">
+                              <span class="compare-label">超越 ${Utils.formatDateSafe(progress.previous.date)}</span>
+                              <span class="compare-value">${progress.previous.weight}kg</span>
+                              <span class="compare-sets">${progress.previous.sets.join('/')}</span>
+                              <span class="compare-volume">(${progress.previous.volume}kg)</span>
+                            </div>
+                          ` : ''}
+                        </div>
+                      </div>
+                    ` : ''}
+                    `;
+                  }).join('')}
                 </div>
                 <div class="workout-footer">
                   <span>${w.sets}组 · ${w.exercises.length}个动作</span>
@@ -66,7 +109,8 @@ const WorkoutModule = {
                   <button class="btn btn-sm btn-danger" onclick="event.stopPropagation(); WorkoutModule.deleteWorkout('${w.date}')">删除</button>
                 </div>
               </div>
-            `).join('')}
+              `;
+            }).join('')}
           </div>
           ${Utils.renderPagination(this.currentPage, totalPages, 'Workout')}
         ` : `
@@ -721,6 +765,7 @@ const WorkoutModule = {
         }
         this.recalculatePRsAfterDeletion([]);
         Utils.showToast('已恢复训练记录');
+        navigateTo('workout');
       });
       
       navigateTo('workout');

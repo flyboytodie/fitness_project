@@ -479,6 +479,89 @@ body {
   background: var(--border);
 }
 
+/* 进步追踪 */
+.progress-item {
+  margin-top: 12px;
+  padding: 12px;
+  background: #F1F5F9;
+  border-radius: 12px;
+  border: 1px solid #E2E8F0;
+}
+
+.progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.progress-exercise {
+  font-weight: 600;
+  font-size: 14px;
+  color: #1E293B;
+}
+
+.progress-type {
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-weight: 500;
+}
+
+.progress-compare-card {
+  background: #FFFFFF;
+  border-radius: 8px;
+  padding: 10px 12px;
+  border: 1px solid #E2E8F0;
+}
+
+.compare-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  color: #64748B;
+}
+
+.compare-row.main {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1E293B;
+  margin: 8px 0;
+}
+
+.compare-row.dates {
+  font-size: 12px;
+  color: #94A3B8;
+}
+
+.compare-row.sets {
+  font-size: 12px;
+  color: #64748B;
+}
+
+.compare-row.message {
+  font-size: 12px;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px dashed #E2E8F0;
+}
+
+.compare-arrow-large {
+  color: #94A3B8;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.compare-old {
+  color: #94A3B8;
+}
+
+.compare-new {
+  font-weight: 700;
+  color: #1E293B;
+}
+
 /* 动作标签 */
 .exercise-tag {
   padding: 8px 12px;
@@ -799,6 +882,176 @@ body {
   color: var(--text-muted);
   min-width: 80px;
   text-align: center;
+}
+
+/* 训练卡片突破信息 */
+.workout-card {
+  position: relative;
+}
+
+.workout-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.workout-date {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.workout-parts {
+  font-size: 12px;
+  padding: 4px 8px;
+  background: var(--primary);
+  color: white;
+  border-radius: 4px;
+}
+
+.workout-pr-badge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+  color: white;
+  padding: 4px 10px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
+}
+
+.exercise-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+  gap: 8px;
+}
+
+.exercise-row:last-child {
+  border-bottom: none;
+}
+
+.exercise-row.has-progress {
+  border-bottom: none;
+}
+
+.exercise-name {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.exercise-weight {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--primary);
+  min-width: 50px;
+  text-align: right;
+}
+
+.exercise-reps {
+  font-size: 12px;
+  color: var(--text-muted);
+  min-width: 60px;
+  text-align: right;
+}
+
+.progress-badge {
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.progress-detail {
+  background: #F8FAFC;
+  padding: 12px;
+  margin: 8px 0 12px 0;
+  border-radius: 0 8px 8px 0;
+}
+
+.progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  font-size: 13px;
+}
+
+.progress-compare {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.compare-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  flex-wrap: wrap;
+}
+
+.compare-item.previous {
+  opacity: 0.6;
+  font-size: 12px;
+}
+
+.compare-label {
+  color: var(--text-muted);
+  min-width: 90px;
+}
+
+.compare-value {
+  font-weight: 600;
+  color: var(--primary);
+  min-width: 50px;
+}
+
+.compare-sets {
+  flex: 1;
+  font-weight: 500;
+  color: var(--text);
+  font-family: 'Courier New', monospace;
+  background: #E2E8F0;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.compare-item.previous .compare-sets {
+  background: #CBD5E1;
+}
+
+.compare-volume {
+  font-size: 11px;
+  color: var(--text-muted);
+  min-width: 50px;
+  text-align: right;
+}
+
+.compare-arrow {
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 12px;
+  padding: 4px 0;
+}
+
+/* PR详情样式 */
+.pr-improvement {
+  margin-top: 8px;
+}
+
+.pr-history-current {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.pr-history-previous {
+  color: var(--text-muted);
 }
 
 .quick-fill {
