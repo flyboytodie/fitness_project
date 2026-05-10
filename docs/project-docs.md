@@ -35,7 +35,7 @@
 | 21 | 动作库管理 | ✅ | 支持动作的增删改查、按部位筛选、搜索功能 |
 | 22 | 动作部位映射 | ✅ | 将训练记录中的复合部位映射到动作实际部位 |
 | 23 | 数据导出增强 | ✅ | 支持导出动作库、统一导入导出格式 |
-| 24 | 清除动作库 | ✅ | 支持单独清除动作库，清除全部数据包含动作库 |
+| 24 | 清除动作库 | ✅ | 支持单独清除动作库，清除全部数据时动作库也会被清除 |
 
 ### 1.3 功能特性
 
@@ -729,13 +729,17 @@ function importData(content, fileName) {
 
 **问题**: 点击"清除全部数据"后，动作库仍然存在，需要单独点击"动作库"按钮才能清除
 
-**原因**: `Storage.clearAllData()` 内部会调用 `init()`，而 `init()` 会检查动作库是否存在，如果不存在就自动创建默认动作库
+**原因**: `Storage.clearAllData()` 执行后调用 `initAppData()`，而 `initAppData()` 内部调用 `Storage.init()`，`init()` 会检查动作库是否存在，如果不存在就自动创建默认动作库
 
 **解决方案**: 
-- 修改 `Storage.clearAllData()` 方法，移除 `this.init()` 调用
-- 确保清除所有数据后不会自动重建动作库
+1. 修改 `Storage.init()` 方法，添加 `skipExerciseLibrary` 参数，支持跳过动作库初始化
+2. 修改 `initAppData()` 函数，传递 `skipExerciseLibrary` 参数
+3. 修改 `SettingsModule.clearAllData()`，调用 `initAppData(true)` 跳过动作库初始化
 
-**代码位置**: `www/js/storage.js:440-443`
+**代码位置**: 
+- `www/js/storage.js:24-28` - `Storage.init()` 方法
+- `www/js/app.js:15-16` - `initAppData()` 函数
+- `www/js/settings.js:1844-1849` - `SettingsModule.clearAllData()` 方法
 
 **修复状态**: ✅ 已修复
 

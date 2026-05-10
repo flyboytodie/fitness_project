@@ -10,9 +10,10 @@ window.currentParams = {};
 
 /**
  * 初始化应用数据
+ * @param {boolean} skipExerciseLibrary - 是否跳过动作库初始化
  */
-function initAppData() {
-  Storage.init();
+function initAppData(skipExerciseLibrary = false) {
+  Storage.init(skipExerciseLibrary);
   appData = {
     workouts: Storage.getWorkouts(),
     diet: Storage.getDiet(),

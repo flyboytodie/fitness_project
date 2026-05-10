@@ -19,9 +19,12 @@ const Storage = {
 
   /**
    * 初始化数据
+   * @param {boolean} skipExerciseLibrary - 是否跳过动作库初始化
    */
-  init() {
-    this.initExerciseLibrary();
+  init(skipExerciseLibrary = false) {
+    if (!skipExerciseLibrary) {
+      this.initExerciseLibrary();
+    }
     this.initSettings();
   },
 

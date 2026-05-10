@@ -1843,7 +1843,7 @@ const SettingsModule = {
    */
   clearAllData() {
     Storage.clearAllData();
-    initAppData();
+    initAppData(true);
     Utils.showToast('所有数据已清除');
     navigateTo('home');
   },
