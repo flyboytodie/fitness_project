@@ -1,0 +1,8 @@
+{
+  "appId": "com.fitness.tracker",
+  "appName": "健身追踪",
+  "webDir": "www",
+  "server": {
+    "androidScheme": "https"
+  }
+}

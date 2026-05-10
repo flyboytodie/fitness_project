@@ -1,0 +1,3 @@
+{"type":"server-started","port":64146,"host":"0.0.0.0","url_host":"localhost","url":"http://localhost:64146","screen_dir":"/workspace/.superpowers/brainstorm/2363-1778159971/content","state_dir":"/workspace/.superpowers/brainstorm/2363-1778159971/state"}
+{"type":"screen-added","file":"/workspace/.superpowers/brainstorm/2363-1778159971/content/use-case.html"}
+{"type":"server-stopped","reason":"idle timeout"}
