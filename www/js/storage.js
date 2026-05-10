@@ -461,6 +461,21 @@ const Storage = {
   clearAllData() {
     Object.values(this.KEYS).forEach(key => localStorage.removeItem(key));
     this.init();
+  },
+
+  /**
+   * 批量保存所有数据
+   * @param {object} data - 包含所有数据的对象
+   */
+  saveAll(data) {
+    if (data.workouts) this.saveWorkouts(data.workouts);
+    if (data.diet) this.saveDiet(data.diet);
+    if (data.body) this.saveBody(data.body);
+    if (data.exerciseLibrary) this.saveExerciseLibrary(data.exerciseLibrary);
+    if (data.starredExercises) this.saveStarredExercises(data.starredExercises);
+    if (data.templates) this.saveTemplates(data.templates);
+    if (data.settings) this.saveSettings(data.settings);
+    if (data.lastWorkout) localStorage.setItem(this.KEYS.LAST_WORKOUT, JSON.stringify(data.lastWorkout));
   }
 };
 

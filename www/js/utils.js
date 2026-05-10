@@ -77,9 +77,9 @@ const Utils = {
   showConfirm(icon, title, message, onConfirm, onCancel) {
     const id = 'confirm-' + Date.now();
     const confirmBox = document.createElement('div');
-    confirmBox.className = 'modal-overlay';
+    confirmBox.className = 'modal-overlay active';
     confirmBox.innerHTML = `
-      <div class="modal-content" style="max-width: 320px;">
+      <div class="modal" style="max-width: 320px;">
         <div class="confirm-icon">${icon}</div>
         <div class="confirm-title">${title}</div>
         <div class="confirm-message">${message}</div>
@@ -122,9 +122,9 @@ const Utils = {
    */
   showModal(content, closeOnOverlayClick = true) {
     const overlay = document.createElement('div');
-    overlay.className = 'modal-overlay';
+    overlay.className = 'modal-overlay active';
     overlay.innerHTML = `
-      <div class="modal-content">
+      <div class="modal">
         ${content}
       </div>
     `;
@@ -231,6 +231,24 @@ const Utils = {
     // 活动系数
     const activityFactor = data.activityLevel || 1.2;
     return Math.round(bmr * activityFactor);
+  },
+
+  /**
+   * 下载文件
+   * @param {string} content - 文件内容
+   * @param {string} filename - 文件名
+   * @param {string} mimeType - MIME类型
+   */
+  downloadFile(content, filename, mimeType = 'text/plain') {
+    const blob = new Blob([content], { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   }
 };
 

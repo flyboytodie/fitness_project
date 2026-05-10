@@ -49,6 +49,16 @@ const BodyModule = {
           </div>
         </div>
         
+        <!-- 体重趋势图表 -->
+        ${appData.body.length >= 2 ? `
+        <div class="card">
+          <div class="card-title">体重趋势</div>
+          <div class="chart-container">
+            <canvas id="weightChart"></canvas>
+          </div>
+        </div>
+        ` : ''}
+        
         <!-- 记录列表 -->
         ${bodyRecords.length > 0 ? `
           <div class="body-list">
@@ -254,6 +264,54 @@ const BodyModule = {
         <button class="btn btn-danger" onclick="Utils.closeModal(); BodyModule.deleteBody('${date}')">删除</button>
       </div>
     `);
+  },
+
+  /**
+   * 渲染体重图表
+   */
+  renderWeightChart() {
+    const canvas = document.getElementById('weightChart');
+    if (!canvas || appData.body.length < 2) return;
+    
+    const ctx = canvas.getContext('2d');
+    const sorted = [...appData.body].sort((a, b) => new Date(a.date) - new Date(b.date)).slice(-14);
+    
+    if (window.weightChartInstance) {
+      window.weightChartInstance.destroy();
+    }
+    
+    window.weightChartInstance = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: sorted.map(b => b.date.slice(5)),
+        datasets: [{
+          label: '体重',
+          data: sorted.map(b => b.weight),
+          borderColor: '#2563EB',
+          backgroundColor: 'rgba(37, 99, 235, 0.1)',
+          fill: true,
+          tension: 0.4,
+          pointRadius: 4,
+          pointBackgroundColor: '#2563EB'
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false }
+        },
+        scales: {
+          y: {
+            beginAtZero: false,
+            grid: { color: '#E2E8F0' }
+          },
+          x: {
+            grid: { display: false }
+          }
+        }
+      }
+    });
   }
 };
 

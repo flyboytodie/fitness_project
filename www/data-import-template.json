@@ -1,0 +1,76 @@
+{
+  "workouts": [
+    {
+      "date": "2024-01-15",
+      "parts": ["胸", "肩"],
+      "exercises": [
+        {
+          "name": "杠铃卧推",
+          "weight": 55,
+          "sets": [8, 8, 8],
+          "totalReps": 24,
+          "notes": "最佳表现"
+        },
+        {
+          "name": "哑铃侧平举",
+          "weight": 15,
+          "sets": [12, 12, 12],
+          "totalReps": 36,
+          "notes": ""
+        }
+      ],
+      "sets": 6
+    }
+  ],
+  "diet": [
+    {
+      "date": "2024-01-15",
+      "calories": 2500,
+      "protein": 150,
+      "carbs": 200,
+      "fat": 80,
+      "notes": "健身日"
+    }
+  ],
+  "body": [
+    {
+      "date": "2024-01-15",
+      "weight": 75.5,
+      "chest": 100,
+      "waist": 85,
+      "hips": 105,
+      "arm": 35,
+      "leg": 55
+    }
+  ],
+  "exerciseLibrary": [
+    {
+      "name": "杠铃卧推",
+      "muscle": "胸",
+      "category": "chest",
+      "equipment": "杠铃"
+    },
+    {
+      "name": "哑铃侧平举",
+      "muscle": "肩",
+      "category": "shoulder",
+      "equipment": "哑铃"
+    }
+  ],
+  "starredExercises": ["杠铃卧推", "深蹲"],
+  "templates": [
+    {
+      "id": "custom_1234567890",
+      "name": "胸部训练",
+      "exercises": ["杠铃卧推", "哑铃卧推", "飞鸟", "双杠臂屈伸"]
+    }
+  ],
+  "settings": {
+    "height": 180,
+    "age": 30,
+    "gender": "male",
+    "activityLevel": 1.55,
+    "calorieGoal": 2500,
+    "showDietProgressBar": true
+  }
+}
