@@ -6,6 +6,12 @@
 const BodyModule = {
   isEditing: false,
   
+  // 当前页码
+  currentPage: 1,
+  
+  // 每页大小
+  pageSize: 10,
+  
   /**
    * 切换编辑模式
    */
@@ -71,7 +77,7 @@ const BodyModule = {
    * 渲染身体数据页面
    */
   renderBodyPage() {
-    const bodyRecords = appData.body.slice(-10).reverse();
+    const { data: bodyRecords, totalPages } = Utils.paginate(appData.body, this.currentPage, this.pageSize);
     const latestBody = appData.body.length > 0 ? appData.body[appData.body.length - 1] : null;
     const prevBody = appData.body.length > 1 ? appData.body[appData.body.length - 2] : null;
     
@@ -240,6 +246,7 @@ const BodyModule = {
               </div>
             `).join('')}
           </div>
+          ${Utils.renderPagination(this.currentPage, totalPages, 'Body')}
         ` : `
           <div class="empty-state">
             <div style="font-size: 48px; margin-bottom: 16px;">⚖️</div>
@@ -249,6 +256,21 @@ const BodyModule = {
         `}
       </div>
     `;
+  },
+  
+  handlePrevPage() {
+    if (this.currentPage > 1) {
+      this.currentPage--;
+      navigateTo('body');
+    }
+  },
+  
+  handleNextPage() {
+    const totalPages = Math.ceil(appData.body.length / this.pageSize);
+    if (this.currentPage < totalPages) {
+      this.currentPage++;
+      navigateTo('body');
+    }
   },
 
   /**

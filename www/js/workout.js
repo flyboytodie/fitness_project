@@ -12,12 +12,18 @@ const WorkoutModule = {
   
   // 当前搜索查询
   searchQuery: '',
+  
+  // 当前页码
+  currentPage: 1,
+  
+  // 每页大小
+  pageSize: 10,
 
   /**
    * 渲染训练页面
    */
   renderWorkoutPage() {
-    const workouts = appData.workouts.slice(-10).reverse();
+    const { data: workouts, totalPages } = Utils.paginate(appData.workouts, this.currentPage, this.pageSize);
     
     return `
       <div class="page active">
@@ -62,6 +68,7 @@ const WorkoutModule = {
               </div>
             `).join('')}
           </div>
+          ${Utils.renderPagination(this.currentPage, totalPages, 'Workout')}
         ` : `
           <div class="empty-state">
             <div style="font-size: 48px; margin-bottom: 16px;">🏋️</div>
@@ -71,6 +78,21 @@ const WorkoutModule = {
         `}
       </div>
     `;
+  },
+  
+  handlePrevPage() {
+    if (this.currentPage > 1) {
+      this.currentPage--;
+      navigateTo('workout');
+    }
+  },
+  
+  handleNextPage() {
+    const totalPages = Math.ceil(appData.workouts.length / this.pageSize);
+    if (this.currentPage < totalPages) {
+      this.currentPage++;
+      navigateTo('workout');
+    }
   },
 
   /**
@@ -94,33 +116,40 @@ const WorkoutModule = {
     
     // 渲染动作列表的HTML
     const exerciseHtml = workoutData && workoutData.exercises.length > 0 
-      ? workoutData.exercises.map((ex, index) => `
-          <div class="exercise-item" id="exercise-${index}">
+      ? workoutData.exercises.map((ex, index) => {
+          const exerciseId = 'ex-' + Date.now() + '-' + index;
+          return `
+          <div class="exercise-item" id="${exerciseId}">
             <div class="exercise-header">
               <div class="exercise-name-tag">${ex.name}</div>
-              <button type="button" class="star-btn" id="star-${index}" 
-                      onclick="WorkoutModule.toggleStar(${index})" 
-                      style="visibility: visible;">
-                ${appData.starredExercises.includes(ex.name) ? '⭐' : '☆'}
-              </button>
+              <div class="exercise-actions">
+                <button type="button" class="move-btn" onclick="WorkoutModule.moveExercise('${exerciseId}', -1)" ${index === 0 ? 'disabled' : ''}>↑</button>
+                <button type="button" class="move-btn" onclick="WorkoutModule.moveExercise('${exerciseId}', 1)" ${index === workoutData.exercises.length - 1 ? 'disabled' : ''}>↓</button>
+                <button type="button" class="star-btn" id="star-${exerciseId}" 
+                        onclick="WorkoutModule.toggleStarByName('${ex.name}')" 
+                        style="visibility: visible;">
+                  ${appData.starredExercises.includes(ex.name) ? '⭐' : '☆'}
+                </button>
+              </div>
             </div>
-            <input type="hidden" name="exercise-${index}" value="${ex.name}">
+            <input type="hidden" name="exercise-${exerciseId}" value="${ex.name}">
             <div class="input-with-unit">
               <div class="input-group" style="flex:1">
                 <label>重量</label>
-                <input type="number" name="weight-${index}" placeholder="55" step="0.5" value="${ex.weight}">
+                <input type="number" name="weight-${exerciseId}" placeholder="55" step="0.5" value="${ex.weight}">
               </div>
               <div class="input-group" style="flex:2">
                 <label>次数</label>
-                <input type="text" name="reps-${index}" placeholder="8/8/8/8" value="${ex.sets.join('/')}">
+                <input type="text" name="reps-${exerciseId}" placeholder="8/8/8/8" value="${ex.sets.join('/')}">
               </div>
             </div>
             <div class="input-group" style="margin-top: 8px;">
-              <input type="text" name="notes-${index}" placeholder="备注：如最佳表现" value="${ex.notes || ''}">
+              <input type="text" name="notes-${exerciseId}" placeholder="备注：如最佳表现" value="${ex.notes || ''}">
             </div>
-            <button type="button" class="delete-btn" onclick="WorkoutModule.removeExercise(${index})">×</button>
+            <button type="button" class="delete-btn" onclick="WorkoutModule.removeExercise('${exerciseId}')">×</button>
           </div>
-        `).join('')
+        `;
+      }).join('')
       : '';
     
     return `
@@ -441,6 +470,75 @@ const WorkoutModule = {
     
     // 更新动作标签的选中状态
     this.updateSelectedTags();
+    
+    // 更新排序按钮状态
+    this.updateMoveButtons();
+  },
+
+  /**
+   * 移动动作位置（上下调整顺序）
+   * @param {string} exerciseId - 动作唯一ID
+   * @param {number} direction - 移动方向（-1=上移, 1=下移）
+   */
+  moveExercise(exerciseId, direction) {
+    const list = document.getElementById('exerciseList');
+    const item = document.getElementById(exerciseId);
+    if (!list || !item) return;
+    
+    const items = Array.from(list.querySelectorAll('.exercise-item'));
+    const currentIndex = items.indexOf(item);
+    const newIndex = currentIndex + direction;
+    
+    if (newIndex < 0 || newIndex >= items.length) return;
+    
+    const targetItem = items[newIndex];
+    
+    if (direction > 0) {
+      targetItem.parentNode.insertBefore(item, targetItem.nextSibling);
+    } else {
+      targetItem.parentNode.insertBefore(item, targetItem);
+    }
+    
+    // 更新排序按钮状态
+    this.updateMoveButtons();
+  },
+
+  /**
+   * 更新排序按钮的禁用状态
+   */
+  updateMoveButtons() {
+    const list = document.getElementById('exerciseList');
+    if (!list) return;
+    
+    const items = list.querySelectorAll('.exercise-item');
+    items.forEach((item, index) => {
+      const upBtn = item.querySelector('.move-btn:first-child');
+      const downBtn = item.querySelector('.move-btn:last-of-type');
+      
+      if (upBtn) upBtn.disabled = index === 0;
+      if (downBtn) downBtn.disabled = index === items.length - 1;
+    });
+  },
+
+  /**
+   * 按名称切换收藏状态
+   * @param {string} exerciseName - 动作名称
+   */
+  toggleStarByName(exerciseName) {
+    const index = appData.starredExercises.indexOf(exerciseName);
+    if (index >= 0) {
+      appData.starredExercises.splice(index, 1);
+    } else {
+      appData.starredExercises.push(exerciseName);
+    }
+    Storage.saveStarredExercises(appData.starredExercises);
+    
+    // 更新所有同名动作的星星按钮
+    document.querySelectorAll('.star-btn').forEach(btn => {
+      if (btn.onclick && btn.onclick.toString().includes(exerciseName)) {
+        btn.textContent = appData.starredExercises.includes(exerciseName) ? '⭐' : '☆';
+      }
+    });
   },
 
   /**
@@ -552,7 +650,41 @@ const WorkoutModule = {
       Utils.showToast('训练记录已保存');
     }
     
+    this.checkForPRs(workout);
+    
     navigateTo('workout');
+  },
+
+  /**
+   * 检查是否有 PR 突破
+   * @param {object} workout - 训练记录
+   */
+  checkForPRs(workout) {
+    const newPRs = [];
+    
+    workout.exercises.forEach(exercise => {
+      const maxReps = Math.max(...exercise.sets);
+      const prData = {
+        weight: exercise.weight,
+        reps: maxReps,
+        date: workout.date
+      };
+      
+      const result = Storage.updatePR(exercise.name, prData);
+      if (result.isNewPR) {
+        newPRs.push({ name: exercise.name, type: result.breakType });
+      }
+    });
+    
+    if (newPRs.length > 0) {
+      const messages = newPRs.map(pr => {
+        const typeIcon = pr.type === 'weight' ? '💪' : pr.type === 'reps' ? '🔢' : pr.type === 'volume' ? '📈' : '🎯';
+        return `${typeIcon} ${pr.name}`;
+      });
+      Utils.showToast(`🏆 PR突破！${messages.join('、')}`, '查看纪录', () => {
+        navigateTo('pr');
+      }, 8000);
+    }
   },
 
   /**
@@ -571,11 +703,14 @@ const WorkoutModule = {
   deleteWorkout(date) {
     Utils.showConfirm('🗑️', '确认删除', '确定要删除这条训练记录吗？此操作可以撤销。', () => {
       const workout = appData.workouts.find(w => w.date === date);
+      const deletedExerciseNames = workout.exercises.map(e => e.name);
       appData.workouts = Storage.deleteWorkout(date);
       
       if (appData.lastWorkout && appData.lastWorkout.date === date) {
         appData.lastWorkout = Storage.getLastWorkout();
       }
+      
+      this.recalculatePRsAfterDeletion(deletedExerciseNames);
       
       Utils.showToast('训练记录已删除', '撤销', () => {
         appData.workouts.push(workout);
@@ -584,11 +719,53 @@ const WorkoutModule = {
           Storage.saveLastWorkout(workout);
           appData.lastWorkout = workout;
         }
+        this.recalculatePRsAfterDeletion([]);
         Utils.showToast('已恢复训练记录');
       });
       
       navigateTo('workout');
     });
+  },
+
+  /**
+   * 删除训练后重新计算PR
+   * @param {Array} deletedExerciseNames - 被删除的动作名称列表
+   */
+  recalculatePRsAfterDeletion(deletedExerciseNames) {
+    const prs = Storage.getPRs();
+    let needsRecalculation = false;
+    
+    deletedExerciseNames.forEach(name => {
+      if (prs[name]) {
+        needsRecalculation = true;
+      }
+    });
+    
+    if (!needsRecalculation) return;
+    
+    const newPRs = {};
+    appData.workouts.forEach(workout => {
+      workout.exercises.forEach(exercise => {
+        const maxReps = Math.max(...exercise.sets);
+        const volume = exercise.weight * maxReps;
+        
+        if (!newPRs[exercise.name] || 
+            exercise.weight > newPRs[exercise.name].weight ||
+            (exercise.weight === newPRs[exercise.name].weight && maxReps > newPRs[exercise.name].reps) ||
+            volume > (newPRs[exercise.name].weight * newPRs[exercise.name].reps)) {
+          newPRs[exercise.name] = {
+            weight: exercise.weight,
+            reps: maxReps,
+            date: workout.date,
+            type: newPRs[exercise.name] ? 
+              (exercise.weight > newPRs[exercise.name].weight ? 'weight' : 
+               (exercise.weight === newPRs[exercise.name].weight && maxReps > newPRs[exercise.name].reps ? 'reps' : 'volume')) : 'first'
+          };
+        }
+      });
+    });
+    
+    Storage.savePRs(newPRs);
   },
 
   /**

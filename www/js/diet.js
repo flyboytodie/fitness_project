@@ -4,13 +4,19 @@
  */
 
 const DietModule = {
+  // 当前页码
+  currentPage: 1,
+  
+  // 每页大小
+  pageSize: 10,
+  
   /**
    * 渲染饮食页面
    */
   renderDietPage() {
     const showProgressBar = appData.settings.showDietProgressBar !== undefined ? appData.settings.showDietProgressBar : true;
     
-    const dietRecords = appData.diet.slice(-10).reverse();
+    const { data: dietRecords, totalPages } = Utils.paginate(appData.diet, this.currentPage, this.pageSize);
     const today = new Date().toISOString().split('T')[0];
     const todayDiet = appData.diet.find(d => d.date === today);
     
@@ -106,6 +112,7 @@ const DietModule = {
               `;
             }).join('')}
           </div>
+          ${Utils.renderPagination(this.currentPage, totalPages, 'Diet')}
         ` : `
           <div class="empty-state">
             <div style="font-size: 48px; margin-bottom: 16px;">🍽️</div>
@@ -115,6 +122,21 @@ const DietModule = {
         `}
       </div>
     `;
+  },
+  
+  handlePrevPage() {
+    if (this.currentPage > 1) {
+      this.currentPage--;
+      navigateTo('diet');
+    }
+  },
+  
+  handleNextPage() {
+    const totalPages = Math.ceil(appData.diet.length / this.pageSize);
+    if (this.currentPage < totalPages) {
+      this.currentPage++;
+      navigateTo('diet');
+    }
   },
 
   /**

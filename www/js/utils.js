@@ -302,6 +302,49 @@ const Utils = {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
+  },
+
+  /**
+   * 生成分页HTML
+   * @param {number} currentPage - 当前页码（从1开始）
+   * @param {number} totalPages - 总页数
+   * @param {string} pageKey - 页面标识（用于区分不同页面的分页状态）
+   * @returns {string} - 分页HTML
+   */
+  renderPagination(currentPage, totalPages, pageKey) {
+    if (totalPages <= 1) return '';
+    
+    const prevDisabled = currentPage <= 1 ? 'disabled' : '';
+    const nextDisabled = currentPage >= totalPages ? 'disabled' : '';
+    
+    return `
+      <div class="pagination">
+        <button class="btn btn-secondary pagination-btn ${prevDisabled}" onclick="${pageKey}Module.handlePrevPage()" ${prevDisabled ? 'disabled' : ''}>
+          ◀ 上一页
+        </button>
+        <span class="pagination-info">第 ${currentPage} / ${totalPages} 页</span>
+        <button class="btn btn-secondary pagination-btn ${nextDisabled}" onclick="${pageKey}Module.handleNextPage()" ${nextDisabled ? 'disabled' : ''}>
+          下一页 ▶
+        </button>
+      </div>
+    `;
+  },
+
+  /**
+   * 分页数据
+   * @param {Array} data - 原始数据数组
+   * @param {number} currentPage - 当前页码（从1开始）
+   * @param {number} pageSize - 每页大小
+   * @returns {Object} - { data: 分页后数据, totalPages: 总页数 }
+   */
+  paginate(data, currentPage, pageSize = 10) {
+    const totalPages = Math.ceil(data.length / pageSize);
+    const start = (currentPage - 1) * pageSize;
+    const end = start + pageSize;
+    return {
+      data: [...data].reverse().slice(start, end),
+      totalPages
+    };
   }
 };
 

@@ -13,7 +13,8 @@ const Storage = {
     STARRED_EXERCISES: 'fitness_starred',
     TEMPLATES: 'fitness_templates',
     SETTINGS: 'fitness_settings',
-    LAST_WORKOUT: 'fitness_last_workout'
+    LAST_WORKOUT: 'fitness_last_workout',
+    PRS: 'fitness_prs'
   },
 
   /**
@@ -476,6 +477,62 @@ const Storage = {
     if (data.templates) this.saveTemplates(data.templates);
     if (data.settings) this.saveSettings(data.settings);
     if (data.lastWorkout) localStorage.setItem(this.KEYS.LAST_WORKOUT, JSON.stringify(data.lastWorkout));
+    if (data.prs) this.savePRs(data.prs);
+  },
+
+  /**
+   * 获取个人纪录数据
+   * @returns {object} - PR数据对象
+   */
+  getPRs() {
+    const data = localStorage.getItem(this.KEYS.PRS);
+    return data ? JSON.parse(data) : {};
+  },
+
+  /**
+   * 保存个人纪录数据
+   * @param {object} prs - PR数据对象
+   */
+  savePRs(prs) {
+    localStorage.setItem(this.KEYS.PRS, JSON.stringify(prs));
+  },
+
+  /**
+   * 更新单个动作的PR
+   * @param {string} exerciseName - 动作名称
+   * @param {object} prData - PR数据 { weight, reps, date }
+   * @returns {boolean} - 是否打破了纪录
+   */
+  updatePR(exerciseName, prData) {
+    const prs = this.getPRs();
+    const existingPR = prs[exerciseName];
+    let isNewPR = false;
+    let breakType = null;
+
+    if (!existingPR) {
+      prs[exerciseName] = { ...prData, type: 'first' };
+      isNewPR = true;
+    } else {
+      const currentVolume = prData.weight * prData.reps;
+      const existingVolume = existingPR.weight * existingPR.reps;
+      
+      if (prData.weight > existingPR.weight) {
+        prs[exerciseName] = { ...prData, type: 'weight' };
+        isNewPR = true;
+        breakType = 'weight';
+      } else if (prData.weight === existingPR.weight && prData.reps > existingPR.reps) {
+        prs[exerciseName] = { ...prData, type: 'reps' };
+        isNewPR = true;
+        breakType = 'reps';
+      } else if (currentVolume > existingVolume) {
+        prs[exerciseName] = { ...prData, type: 'volume' };
+        isNewPR = true;
+        breakType = 'volume';
+      }
+    }
+
+    this.savePRs(prs);
+    return { isNewPR, breakType };
   }
 };
 

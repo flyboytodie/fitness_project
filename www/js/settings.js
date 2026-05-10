@@ -374,31 +374,50 @@ const SettingsModule = {
           }
           
           if (data.workouts && data.workouts.length > 0) {
-            appData.workouts = [...appData.workouts, ...data.workouts];
+            const mergedWorkouts = [...appData.workouts, ...data.workouts];
+            const deduplicatedWorkouts = this.deduplicateWorkouts(mergedWorkouts);
+            const newWorkouts = deduplicatedWorkouts.slice(appData.workouts.length);
+            appData.workouts = deduplicatedWorkouts;
             Storage.saveWorkouts(appData.workouts);
+            this.calculatePRsForImportedWorkouts(newWorkouts);
           }
           if (data.diet && data.diet.length > 0) {
-            appData.diet = [...appData.diet, ...data.diet];
+            const mergedDiet = [...appData.diet, ...data.diet];
+            const deduplicatedDiet = this.deduplicateDiet(mergedDiet);
+            appData.diet = deduplicatedDiet;
             Storage.saveDiet(appData.diet);
           }
           if (data.body && data.body.length > 0) {
-            appData.body = [...appData.body, ...data.body];
+            const mergedBody = [...appData.body, ...data.body];
+            const deduplicatedBody = this.deduplicateBody(mergedBody);
+            appData.body = deduplicatedBody;
             Storage.saveBody(appData.body);
           }
-          if (data.templates) {
-            appData.templates = data.templates;
-            Storage.saveTemplates(data.templates);
+          if (data.templates && data.templates.length > 0) {
+            const existingIds = new Set(appData.templates.map(t => t.id));
+            const newTemplates = data.templates.filter(t => !existingIds.has(t.id));
+            appData.templates = [...appData.templates, ...newTemplates];
+            Storage.saveTemplates(appData.templates);
           }
           if (data.settings) {
             appData.settings = { ...appData.settings, ...data.settings };
             Storage.saveSettings(appData.settings);
           }
-          if (data.starredExercises) {
-            appData.starredExercises = data.starredExercises;
-            Storage.saveStarredExercises(data.starredExercises);
+          if (data.starredExercises && data.starredExercises.length > 0) {
+            const existingStars = new Set(appData.starredExercises);
+            const newStars = data.starredExercises.filter(e => !existingStars.has(e));
+            appData.starredExercises = [...appData.starredExercises, ...newStars];
+            Storage.saveStarredExercises(appData.starredExercises);
           }
           
-          Utils.showToast(`导入成功！训练: ${data.workouts?.length || 0}条，饮食: ${data.diet?.length || 0}条，身体: ${data.body?.length || 0}条`);
+          let importMsg = `导入成功！训练: ${data.workouts?.length || 0}条，饮食: ${data.diet?.length || 0}条`;
+          if (data.starredExercises?.length > 0) {
+            importMsg += `，收藏动作: ${data.starredExercises.length}个`;
+          }
+          if (data.templates?.length > 0) {
+            importMsg += `，模板: ${data.templates.length}个`;
+          }
+          Utils.showToast(importMsg);
           navigateTo('home');
         } catch (err) {
           Utils.showToast('数据导入失败：' + err.message);
@@ -414,14 +433,11 @@ const SettingsModule = {
    * 修复 GBK 编码问题（Windows 中文文件）
    */
   fixGBKEncoding(content) {
-    // 检测是否是 GBK 编码（通过检测常见的 GBK 乱码特征）
-    const gbkPatterns = ['鍋ヨ韩', '涓€銆', '鏃ユ湡', '閮ㄤ綔'];
+    const gbkPatterns = ['鍋ヨ韩', '涓€銆', '鏃ユ湡', '閮ㄤ綔', '鍛ㄤ竴'];
     const hasGbkIssues = gbkPatterns.some(pattern => content.includes(pattern));
     
     if (hasGbkIssues) {
-      // 尝试将 GBK 编码转换为 UTF-8
       try {
-        // 创建一个模拟的转换
         const replacements = {
           '鍋ヨ韩': '健身',
           '姹囨€': '汇总',
@@ -470,7 +486,6 @@ const SettingsModule = {
           '垝鑸?': '划船',
           '姛澶?': '实力',
           '杩涚': '进',
-          '鍔ㄤ綔': '动作',
           '鐩稿叧': '相关',
           '鎶ユ湁': '所有',
           '缁撳悎': '组合',
@@ -502,7 +517,219 @@ const SettingsModule = {
           '鍚': '协',
           '': '作',
           '銆': '。',
-          '€': ''
+          '€': '',
+          '棰勮': '预览',
+          '鍓?': '前',
+          '鍖归': '匹配',
+          '鎴愬': '成功',
+          '绔犺': '章节',
+          '闀垮': '长度',
+          '鑷': '从',
+          '闈?': '无',
+          '鍒嗘': '减',
+          '寰?': '环',
+          '澶?': '大',
+          '鏁?': '数',
+          '椋?': '量',
+          '鍑?': '下',
+          '闄?': '降',
+          '鏄?': '是',
+          '鐪?': '还',
+          '鏄?': '并',
+          '涓?': '一',
+          '鐢?': '使',
+          '閲?': '阅',
+          '浼?': '为',
+          '鎴?': '成',
+          '缁?': '组',
+          '鐜?': '当',
+          '鍚?': '协',
+          '闈?': '无',
+          '鎵?': '找',
+          '琚?': '被',
+          '鐩?': '目',
+          '澶?': '大',
+          '鍑?': '下',
+          '鐢?': '使',
+          '杩?': '实',
+          '鏃?': '时',
+          '闈?': '无',
+          '鍒?': '分',
+          '鍓?': '前',
+          '鏄?': '是',
+          '鎴?': '成',
+          '鐪?': '还',
+          '鏄?': '并',
+          '涓?': '一',
+          '鐢?': '使',
+          '閲?': '阅',
+          '浼?': '为',
+          '鎴?': '成',
+          '缁?': '组',
+          '鐜?': '当',
+          '鍚?': '协',
+          '闈?': '无',
+          '鎵?': '找',
+          '琚?': '被',
+          '鐩?': '目',
+          '澶?': '大',
+          '鍑?': '下',
+          '鐢?': '使',
+          '杩?': '实',
+          '鏃?': '时',
+          '闈?': '无',
+          '鍒?': '分',
+          '鍓?': '前',
+          '椋為笩': '飞鸟',
+          '閫掑噺': '递减',
+          '鍚庢潫': '后束',
+          '椋為笩': '飞鸟',
+          '閫掑噺': '递减',
+          '浠?': '从',
+          '鎴愬': '成功',
+          '绗?': '第',
+          '闄?': '降',
+          '鍐嶅': '再',
+          '姞': '加',
+          '鍝戦搩鎺ㄨ偐': '哑铃推肩',
+          '寮曚綋鍚戜笂': '引体向上',
+          '鍣ㄦ鎷夎儗': '器械拉背',
+          '楂樹綅涓嬫媺': '高位下拉',
+          '鍣ㄦ鍒掕埞': '器械划船',
+          '榫欓棬鏋禫': '龙门架',
+          '杩涙': '进',
+          '鐜': '当',
+          '鍚': '协',
+          '闈': '无',
+          '鎵': '找',
+          '琚': '被',
+          '鐩': '目',
+          '澶': '大',
+          '鍑': '下',
+          '鐢': '使',
+          '杩': '实',
+          '鏃': '时',
+          '闈': '无',
+          '鍒': '分',
+          '鍓': '前',
+          '椋': '飞',
+          '為': '鸟',
+          '笩': '组',
+          '閫': '递',
+          '掑': '减',
+          '噺': '数',
+          '鍚': '后',
+          '庢': '束',
+          '潫': '飞',
+          '浠': '从',
+          '鎴': '成',
+          '愬': '功',
+          '绗': '第',
+          '闄': '降',
+          '鍐': '再',
+          '嶅': '加',
+          '鍝': '哑',
+          '戦': '铃',
+          '搩': '推',
+          '鎺': '肩',
+          'ㄨ': '',
+          '偐': '',
+          '寮': '引',
+          '曚': '体',
+          '綋': '向',
+          '鍚': '上',
+          '戜': '',
+          '笂': '',
+          '鑷': '自',
+          '': '',
+          '噸': '重',
+          '鍣': '器',
+          'ㄦ': '',
+          '': '',
+          '鎷': '械',
+          '夎': '拉',
+          '儗': '背',
+          '楂': '高',
+          '樹': '位',
+          '綅': '',
+          '涓': '下',
+          '嬫': '拉',
+          '媺': '',
+          '鍒': '划',
+          '掕': '船',
+          '埞': '',
+          '榫': '龙',
+          '欓': '门',
+          '棬': '架',
+          '鏋': '',
+          '禫': '',
+          '杩': '进',
+          '涙': '',
+          '鐜': '',
+          '鍚': '',
+          '闈': '',
+          '鎵': '',
+          '琚': '',
+          '鐩': '',
+          '澶': '',
+          '鍑': '',
+          '鐢': '',
+          '杩': '',
+          '鏃': '',
+          '闈': '',
+          '鍒': '',
+          '鍓': '',
+          '椋': '',
+          '為': '',
+          '笩': '',
+          '閫': '',
+          '掑': '',
+          '噺': '',
+          '鍚': '',
+          '庢': '',
+          '潫': '',
+          '浠': '',
+          '鎴': '',
+          '愬': '',
+          '绗': '',
+          '闄': '',
+          '鍐': '',
+          '嶅': '',
+          '鍝': '',
+          '戦': '',
+          '搩': '',
+          '鎺': '',
+          'ㄨ': '',
+          '偐': '',
+          '寮': '',
+          '曚': '',
+          '綋': '',
+          '鍚': '',
+          '戜': '',
+          '笂': '',
+          '鑷': '',
+          '': '',
+          '噸': '',
+          '鍣': '',
+          'ㄦ': '',
+          '': '',
+          '鎷': '',
+          '夎': '',
+          '儗': '',
+          '楂': '',
+          '樹': '',
+          '綅': '',
+          '涓': '',
+          '嬫': '',
+          '媺': '',
+          '鍒': '',
+          '掕': '',
+          '埞': '',
+          '榫': '',
+          '欓': '',
+          '棬': '',
+          '鏋': '',
+          '禫': ''
         };
         
         Object.keys(replacements).forEach(key => {
@@ -518,72 +745,116 @@ const SettingsModule = {
 
   /**
    * 解析 Markdown 文件为数据结构
+   * 支持新格式：使用 emoji 标识章节，统一表格格式
    */
   parseMarkdownToData(content) {
     const data = {
       workouts: [],
       diet: [],
-      body: []
+      body: [],
+      starredExercises: [],
+      templates: []
     };
     
     const lines = content.split('\n');
     let currentSection = '';
     let inTable = false;
-    let currentExerciseName = '';
     let tableHeaders = [];
+    let currentTemplateName = '';
+    let inStarredSection = false;
+    let inTemplateSection = false;
     
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i].trim();
       
-      // 检测章节
       if (line.startsWith('## ')) {
-        if (line.includes('训练') || line.includes('鍋ヨ韩') || line.includes('佽')) {
-          currentSection = 'workout';
-        } else if (line.includes('饮食') || line.includes('闋')) {
-          currentSection = 'diet';
-        } else if (line.includes('身体') || line.includes('琛')) {
-          currentSection = 'body';
-        } else {
-          currentSection = '';
-        }
-        inTable = false;
-        currentExerciseName = '';
-        continue;
-      }
-      
-      // 检测动作名称 (#### )
-      if (line.startsWith('#### ')) {
-        currentExerciseName = line.substring(5).trim();
         inTable = false;
         tableHeaders = [];
+        currentTemplateName = '';
+        
+        if (line.includes('📅') || line.includes('训练记录') || line.includes('训练历史')) {
+          currentSection = 'workout';
+          inStarredSection = false;
+          inTemplateSection = false;
+        } else if (line.includes('🥗') || line.includes('饮食')) {
+          currentSection = 'diet';
+          inStarredSection = false;
+          inTemplateSection = false;
+        } else if (line.includes('⚖️') || line.includes('身体')) {
+          currentSection = 'body';
+          inStarredSection = false;
+          inTemplateSection = false;
+        } else if (line.includes('⭐') || line.includes('收藏动作')) {
+          currentSection = '';
+          inStarredSection = true;
+          inTemplateSection = false;
+        } else if (line.includes('📋') || line.includes('训练模板')) {
+          currentSection = '';
+          inStarredSection = false;
+          inTemplateSection = true;
+        } else {
+          currentSection = '';
+          inStarredSection = false;
+          inTemplateSection = false;
+        }
         continue;
       }
       
-      // 检测表格开始
-      if (line.startsWith('|') && !line.includes('|------')) {
-        if (!inTable) {
+      if (inStarredSection && line.startsWith('- ')) {
+        const exerciseName = line.substring(2).trim();
+        if (exerciseName) {
+          data.starredExercises.push(exerciseName);
+        }
+        continue;
+      }
+      
+      if (inTemplateSection) {
+        if (line.startsWith('### ')) {
+          currentTemplateName = line.substring(4).trim();
+          if (currentTemplateName) {
+            data.templates.push({
+              id: 'custom_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+              name: currentTemplateName,
+              exercises: [],
+              parts: []
+            });
+          }
+        } else if (line.startsWith('- ') && currentTemplateName && data.templates.length > 0) {
+          const exerciseName = line.substring(2).trim();
+          if (exerciseName) {
+            data.templates[data.templates.length - 1].exercises.push(exerciseName);
+          }
+        }
+        continue;
+      }
+      
+      if (line.startsWith('|')) {
+        const parts = line.split('|').map(p => p.trim()).filter(p => p);
+        
+        if (line.includes('|------') && parts.length > 1) {
           inTable = true;
-          tableHeaders = line.split('|').map(p => p.trim()).filter(p => p);
-        } else {
-          const parts = line.split('|').map(p => p.trim()).filter(p => p);
-          if (parts.length >= 2) {
-            const dateStr = this.parseDate(parts[0]);
-            if (dateStr) {
-              // 判断是训练表还是饮食表
-              if (currentSection === 'workout' || (currentExerciseName && parts.length >= 4)) {
-                this.addWorkoutData(data, dateStr, parts, currentExerciseName);
-              } else if (currentSection === 'diet') {
-                this.addDietData(data, dateStr, parts);
-              }
+          continue;
+        }
+        
+        if (!inTable) {
+          tableHeaders = parts;
+          continue;
+        }
+        
+        if (parts.length >= 2) {
+          const dateStr = this.parseDate(parts[0]);
+          if (dateStr) {
+            if (currentSection === 'workout') {
+              this.parseWorkoutTableRow(data, dateStr, parts, tableHeaders);
+            } else if (currentSection === 'diet') {
+              this.parseDietTableRow(data, dateStr, parts, tableHeaders);
+            } else if (currentSection === 'body') {
+              this.parseBodyTableRow(data, dateStr, parts, tableHeaders);
             }
           }
         }
-      }
-      
-      // 检测表格分隔线
-      if (line.startsWith('|------')) {
-        inTable = true;
-        continue;
+      } else if (line.trim() === '' || line.startsWith('## ')) {
+        inTable = false;
       }
     }
     
@@ -591,42 +862,254 @@ const SettingsModule = {
   },
   
   /**
-   * 添加训练数据
+   * 解析训练记录表格行（新格式）
+   * 表格格式: | 日期 | 训练部位 | 动作名称 | 重量(kg) | 组数 | 次数 | 总次数 | 备注 |
    */
-  addWorkoutData(data, dateStr, parts, exerciseName = '') {
-    // 如果没有指定动作名称，从描述中提取
-    let name = exerciseName || this.cleanExerciseName(parts[4] || parts[1] || '');
-    let weight = parseFloat(parts[1]) || this.extractWeight(parts[4] || parts[1] || '');
-    let setsInfo = parts[2] || parts[4] || '';
-    let totalReps = parseInt(parts[3]) || this.calculateTotalReps(setsInfo);
-    let sets = this.extractSetCount(setsInfo) || 0;
-    let notes = parts[4] || parts[5] || '';
+  parseWorkoutTableRow(data, dateStr, parts, headers) {
+    const headerIndex = (name) => {
+      return headers.findIndex(h => h.includes(name));
+    };
     
-    // 如果没有指定部位，尝试从描述中提取
-    let partsList = ['综合'];
-    if (parts[2] && !parts[2].match(/^\d/)) {
-      partsList = [parts[2]];
+    const dateIdx = headerIndex('日期');
+    const partsIdx = headerIndex('部位');
+    const nameIdx = headerIndex('动作');
+    const weightIdx = headerIndex('重量');
+    const setsIdx = headerIndex('组数');
+    const repsIdx = headerIndex('次数');
+    const totalIdx = headerIndex('总次数');
+    const notesIdx = headerIndex('备注');
+    
+    if (nameIdx === -1) return;
+    
+    const exerciseName = parts[nameIdx] || '';
+    if (!exerciseName.trim()) return;
+    
+    let workout = data.workouts.find(w => w.date === dateStr);
+    if (!workout) {
+      workout = {
+        date: dateStr,
+        parts: [],
+        exercises: [],
+        sets: 0
+      };
+      data.workouts.push(workout);
     }
+    
+    if (partsIdx !== -1 && parts[partsIdx]) {
+      workout.parts = [...new Set([...workout.parts, ...parts[partsIdx].split('+').map(p => p.trim())])];
+    }
+    
+    const weight = weightIdx !== -1 ? this.extractNumber(parts[weightIdx]) : 0;
+    const setsStr = setsIdx !== -1 ? parts[setsIdx] : '';
+    const repsStr = repsIdx !== -1 ? parts[repsIdx] : '';
+    const setArray = this.extractSetsFromStr(repsStr) || this.extractSetsFromStr(setsStr);
+    const totalReps = totalIdx !== -1 ? this.extractNumber(parts[totalIdx]) : setArray.reduce((sum, n) => sum + n, 0);
+    const notes = notesIdx !== -1 ? parts[notesIdx] : '';
+    
+    workout.exercises.push({
+      name: exerciseName.trim(),
+      weight: weight,
+      sets: setArray.length > 0 ? setArray : (setsIdx !== -1 ? Array(parseInt(parts[setsIdx]) || 4).fill(8) : [8]),
+      totalReps: totalReps,
+      notes: notes
+    });
+    
+    if (setsIdx !== -1) {
+      workout.sets = parseInt(parts[setsIdx]) || workout.sets;
+    }
+  },
+  
+  /**
+   * 解析饮食记录表格行（新格式）
+   * 表格格式: | 日期 | 千卡 | 蛋白质(g) | 碳水(g) | 脂肪(g) | 备注 |
+   */
+  parseDietTableRow(data, dateStr, parts, headers) {
+    const headerIndex = (name) => {
+      return headers.findIndex(h => h.includes(name));
+    };
+    
+    const caloriesIdx = headerIndex('千卡');
+    const proteinIdx = headerIndex('蛋白质');
+    const carbsIdx = headerIndex('碳水');
+    const fatIdx = headerIndex('脂肪');
+    const notesIdx = headerIndex('备注');
+    
+    const existingDiet = data.diet.find(d => d.date === dateStr);
+    if (existingDiet) {
+      if (caloriesIdx !== -1) existingDiet.calories = this.extractNumber(parts[caloriesIdx]);
+      if (proteinIdx !== -1) existingDiet.protein = this.extractNumber(parts[proteinIdx]);
+      if (carbsIdx !== -1) existingDiet.carbs = this.extractNumber(parts[carbsIdx]);
+      if (fatIdx !== -1) existingDiet.fat = this.extractNumber(parts[fatIdx]);
+      if (notesIdx !== -1) existingDiet.notes = parts[notesIdx] || '';
+    } else {
+      data.diet.push({
+        date: dateStr,
+        calories: caloriesIdx !== -1 ? this.extractNumber(parts[caloriesIdx]) : 0,
+        protein: proteinIdx !== -1 ? this.extractNumber(parts[proteinIdx]) : 0,
+        carbs: carbsIdx !== -1 ? this.extractNumber(parts[carbsIdx]) : 0,
+        fat: fatIdx !== -1 ? this.extractNumber(parts[fatIdx]) : 0,
+        notes: notesIdx !== -1 ? parts[notesIdx] : ''
+      });
+    }
+  },
+  
+  /**
+   * 解析身体数据表格行（新格式）
+   * 表格格式: | 日期 | 体重(kg) | 胸围(cm) | 腰围(cm) | 臀围(cm) | 上臂(cm) | 大腿(cm) |
+   */
+  parseBodyTableRow(data, dateStr, parts, headers) {
+    const headerIndex = (name) => {
+      return headers.findIndex(h => h.includes(name));
+    };
+    
+    const weightIdx = headerIndex('体重');
+    const chestIdx = headerIndex('胸围');
+    const waistIdx = headerIndex('腰围');
+    const hipsIdx = headerIndex('臀围');
+    const armIdx = headerIndex('上臂');
+    const legIdx = headerIndex('大腿');
+    
+    const existingBody = data.body.find(b => b.date === dateStr);
+    if (existingBody) {
+      if (weightIdx !== -1) existingBody.weight = parseFloat(parts[weightIdx]) || 0;
+      if (chestIdx !== -1) existingBody.chest = parseFloat(parts[chestIdx]) || 0;
+      if (waistIdx !== -1) existingBody.waist = parseFloat(parts[waistIdx]) || 0;
+      if (hipsIdx !== -1) existingBody.hips = parseFloat(parts[hipsIdx]) || 0;
+      if (armIdx !== -1) existingBody.arm = parseFloat(parts[armIdx]) || 0;
+      if (legIdx !== -1) existingBody.leg = parseFloat(parts[legIdx]) || 0;
+    } else {
+      data.body.push({
+        date: dateStr,
+        weight: weightIdx !== -1 ? parseFloat(parts[weightIdx]) || 0 : 0,
+        chest: chestIdx !== -1 ? parseFloat(parts[chestIdx]) || 0 : 0,
+        waist: waistIdx !== -1 ? parseFloat(parts[waistIdx]) || 0 : 0,
+        hips: hipsIdx !== -1 ? parseFloat(parts[hipsIdx]) || 0 : 0,
+        arm: armIdx !== -1 ? parseFloat(parts[armIdx]) || 0 : 0,
+        leg: legIdx !== -1 ? parseFloat(parts[legIdx]) || 0 : 0
+      });
+    }
+  },
+  
+  /**
+   * 解析训练历史总览表（旧格式兼容）
+   */
+  parseWorkoutSummaryTable(data, dateStr, parts, headers) {
+    let workout = data.workouts.find(w => w.date === dateStr);
+    if (!workout) {
+      workout = {
+        date: dateStr,
+        parts: [],
+        exercises: [],
+        sets: 0
+      };
+      data.workouts.push(workout);
+    }
+    
+    const partIndex = headers.indexOf('部位');
+    if (partIndex !== -1 && parts[partIndex]) {
+      workout.parts = parts[partIndex].split('+').map(p => p.trim());
+    }
+    
+    const setsIndex = headers.indexOf('总组数');
+    if (setsIndex !== -1 && parts[setsIndex]) {
+      const setsStr = parts[setsIndex].replace('组', '').replace('+', '');
+      workout.sets = parseInt(setsStr) || 0;
+    }
+    
+    const actionIndex = headers.findIndex(h => h.includes('动作') || h.includes('核心'));
+    if (actionIndex !== -1 && parts[actionIndex]) {
+      const actions = parts[actionIndex].split('、');
+      actions.forEach(actionStr => {
+        const exerciseData = this.parseExerciseString(actionStr);
+        if (exerciseData.name && exerciseData.name.trim()) {
+          const existingExercise = workout.exercises.find(e => e.name === exerciseData.name);
+          if (!existingExercise) {
+            workout.exercises.push(exerciseData);
+          }
+        }
+      });
+    }
+  },
+  
+  /**
+   * 解析动作字符串
+   */
+  parseExerciseString(str) {
+    const result = {
+      name: '',
+      weight: 0,
+      sets: [],
+      totalReps: 0,
+      notes: ''
+    };
+    
+    const match = str.match(/(.+?)(\d+(?:\.\d+)?)\s*kg\s*[×x×]\s*(\d+)\s*组(?:\((.+?)\))?/);
+    if (match) {
+      result.name = match[1].trim();
+      result.weight = parseFloat(match[2]);
+      const setCount = parseInt(match[3]);
+      if (match[4]) {
+        result.sets = match[4].split('/').map(n => {
+          const nStr = n.trim();
+          const innerMatch = nStr.match(/(\d+)(?:降(\d+(?:\.\d+)?))?/);
+          if (innerMatch) {
+            return parseInt(innerMatch[1]);
+          }
+          return parseInt(nStr);
+        }).filter(n => !isNaN(n));
+      } else {
+        result.sets = Array(setCount).fill(8);
+      }
+      result.totalReps = result.sets.reduce((sum, n) => sum + (n || 0), 0);
+    } else {
+      const simpleMatch = str.match(/(.+?)(\d+(?:\.\d+)?)\s*kg/);
+      if (simpleMatch) {
+        result.name = simpleMatch[1].trim();
+        result.weight = parseFloat(simpleMatch[2]);
+        result.sets = [8];
+        result.totalReps = 8;
+      } else {
+        result.name = str.trim();
+        result.sets = [8];
+        result.totalReps = 8;
+      }
+    }
+    
+    return result;
+  },
+  
+  /**
+   * 添加训练数据（新格式）
+   */
+  addWorkoutData(data, dateStr, parts, exerciseName = '', partsList = ['综合'], totalSets = 0) {
+    // 新格式：| 重量(kg) | 组数 | 次数 | 备注 |
+    let weight = parseFloat(parts[0]) || 0;
+    let sets = parseInt(parts[1]) || 0;
+    let setsInfo = parts[2] || '';
+    let notes = parts[3] || '';
+    
+    // 计算总次数
+    const setArray = this.extractSetsFromStr(setsInfo);
+    const totalReps = setArray.reduce((sum, n) => sum + n, 0);
     
     let existingWorkout = data.workouts.find(w => w.date === dateStr);
     if (!existingWorkout) {
       existingWorkout = {
         date: dateStr,
-        parts: partsList,
+        parts: [...partsList],
         exercises: [],
-        sets: 0
+        sets: totalSets || 0
       };
       data.workouts.push(existingWorkout);
     }
     
     existingWorkout.exercises.push({
-      name: name || '未记录',
+      name: exerciseName || '未记录',
       weight: weight,
-      sets: this.extractSetsFromStr(setsInfo),
+      sets: setArray,
       totalReps: totalReps,
       notes: notes
     });
-    existingWorkout.sets += sets || 1;
   },
   
   /**
@@ -635,11 +1118,26 @@ const SettingsModule = {
   addDietData(data, dateStr, parts) {
     data.diet.push({
       date: dateStr,
-      calories: this.extractNumber(parts[5] || parts[4] || ''),
-      protein: this.extractNumber(parts[2] || ''),
-      carbs: this.extractNumber(parts[3] || ''),
-      fat: this.extractNumber(parts[4] || ''),
-      notes: parts[6] || parts[5] || ''
+      calories: this.extractNumber(parts[4] || ''),
+      protein: this.extractNumber(parts[1] || ''),
+      carbs: this.extractNumber(parts[2] || ''),
+      fat: this.extractNumber(parts[3] || ''),
+      notes: parts[5] || ''
+    });
+  },
+
+  /**
+   * 添加身体数据
+   */
+  addBodyData(data, dateStr, parts) {
+    data.body.push({
+      date: dateStr,
+      weight: parseFloat(parts[1]) || 0,
+      chest: parseFloat(parts[2]) || 0,
+      waist: parseFloat(parts[3]) || 0,
+      hips: parseFloat(parts[4]) || 0,
+      arm: parseFloat(parts[5]) || 0,
+      leg: parseFloat(parts[6]) || 0
     });
   },
 
@@ -806,17 +1304,26 @@ const SettingsModule = {
   },
 
   extractSetsFromStr(str) {
-    if (!str) return [];
+    if (!str || str.trim() === '') return [];
+    str = str.trim();
+    
     const match = str.match(/(\d+)\s*组\((.+?)\)/);
     if (match) {
-      return match[2].split('/').map(n => parseInt(n));
+      return match[2].split('/').map(n => parseInt(n)).filter(n => !isNaN(n));
     }
+    
     const simpleMatch = str.match(/(\d+)\s*×\s*(\d+)/);
     if (simpleMatch) {
       const sets = parseInt(simpleMatch[1]);
       const reps = parseInt(simpleMatch[2]);
       return Array(sets).fill(reps);
     }
+    
+    const slashMatch = str.match(/^(\d+\/)+\d+$/);
+    if (slashMatch) {
+      return str.split('/').map(n => parseInt(n)).filter(n => !isNaN(n));
+    }
+    
     return [];
   },
 
@@ -855,7 +1362,7 @@ const SettingsModule = {
   },
 
   /**
-   * 去重训练记录
+   * 去重训练记录（按日期+部位组合去重）
    */
   deduplicateWorkouts(workouts) {
     const seen = new Set();
@@ -863,6 +1370,30 @@ const SettingsModule = {
       const key = w.date + '-' + w.parts.join('-');
       if (seen.has(key)) return false;
       seen.add(key);
+      return true;
+    });
+  },
+
+  /**
+   * 去重饮食记录（按日期去重）
+   */
+  deduplicateDiet(diet) {
+    const seen = new Set();
+    return diet.filter(d => {
+      if (seen.has(d.date)) return false;
+      seen.add(d.date);
+      return true;
+    });
+  },
+
+  /**
+   * 去重身体数据（按日期去重）
+   */
+  deduplicateBody(body) {
+    const seen = new Set();
+    return body.filter(b => {
+      if (seen.has(b.date)) return false;
+      seen.add(b.date);
       return true;
     });
   },
@@ -1200,6 +1731,46 @@ const SettingsModule = {
     Storage.saveBody([]);
     Utils.showToast('身体数据已清除');
     navigateTo('body');
+  },
+
+  /**
+   * 为导入的训练记录计算 PR
+   * @param {Array} workouts - 训练记录数组
+   */
+  calculatePRsForImportedWorkouts(workouts) {
+    const updatedPRs = [];
+    const breakTypes = { weight: 0, reps: 0, volume: 0, first: 0 };
+    
+    workouts.forEach(workout => {
+      workout.exercises.forEach(exercise => {
+        if (!exercise.sets || exercise.sets.length === 0) return;
+        
+        const maxReps = Math.max(...exercise.sets);
+        const prData = {
+          weight: exercise.weight || 0,
+          reps: maxReps,
+          date: workout.date
+        };
+        
+        const result = Storage.updatePR(exercise.name, prData);
+        if (result.isNewPR) {
+          updatedPRs.push(exercise.name);
+          const type = result.breakType || 'first';
+          breakTypes[type]++;
+        }
+      });
+    });
+    
+    if (updatedPRs.length > 0) {
+      let message = `已更新 ${updatedPRs.length} 项个人纪录`;
+      const typeMessages = [];
+      if (breakTypes.weight > 0) typeMessages.push(`${breakTypes.weight}次重量突破`);
+      if (breakTypes.reps > 0) typeMessages.push(`${breakTypes.reps}次次数突破`);
+      if (breakTypes.volume > 0) typeMessages.push(`${breakTypes.volume}次总量突破`);
+      if (breakTypes.first > 0) typeMessages.push(`${breakTypes.first}项新纪录`);
+      if (typeMessages.length > 0) message += ` (${typeMessages.join('、')})`;
+      Utils.showToast(message);
+    }
   }
 };
 

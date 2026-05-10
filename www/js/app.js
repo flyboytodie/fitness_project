@@ -54,6 +54,7 @@ function navigateTo(page, params = {}) {
     workout: '训练记录',
     diet: '饮食记录',
     body: '身体数据',
+    pr: '个人纪录',
     stats: '数据分析',
     settings: '设置',
     'workout-add': '记录训练',
@@ -109,6 +110,9 @@ function renderPage(page) {
     case 'body':
       app.innerHTML = BodyModule.renderBodyPage();
       break;
+    case 'pr':
+      app.innerHTML = renderPRPage();
+      break;
     case 'stats':
       app.innerHTML = renderStatsPage();
       break;
@@ -124,6 +128,172 @@ function renderPage(page) {
 }
 
 /**
+ * 计算连续训练天数
+ */
+function calculateStreak() {
+  if (appData.workouts.length === 0) return 0;
+  
+  const workouts = [...appData.workouts].sort((a, b) => new Date(b.date) - new Date(a.date));
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  
+  let streak = 0;
+  const workoutDates = new Set(workouts.map(w => w.date));
+  
+  for (let i = 0; i < 365; i++) {
+    const checkDate = new Date(today);
+    checkDate.setDate(checkDate.getDate() - i);
+    const dateStr = checkDate.toISOString().split('T')[0];
+    
+    if (workoutDates.has(dateStr)) {
+      streak++;
+    } else if (i > 0) {
+      break;
+    }
+  }
+  
+  return streak;
+}
+
+/**
+ * 渲染个人纪录页面
+ */
+function renderPRPage() {
+  const prs = Storage.getPRs();
+  const prCount = Object.keys(prs).length;
+  
+  const prEntries = Object.entries(prs).map(([name, pr]) => ({
+    name,
+    ...pr,
+    volume: pr.weight * pr.reps
+  })).sort((a, b) => b.volume - a.volume);
+  
+  const exerciseLibrary = Storage.getExerciseLibrary();
+  
+  const categories = {
+    chest: { name: '胸部', icon: '💪', color: '#EF4444' },
+    back: { name: '背部', icon: '🪨', color: '#10B981' },
+    shoulder: { name: '肩部', icon: '🦾', color: '#8B5CF6' },
+    legs: { name: '腿部', icon: '🦵', color: '#F59E0B' },
+    arms: { name: '手臂', icon: '💪', color: '#EC4899' },
+    cardio: { name: '有氧', icon: '🏃', color: '#06B6D4' }
+  };
+
+  const getBreakTypeInfo = (type) => {
+    switch (type) {
+      case 'weight': return { icon: '💪', label: '重量突破', color: '#EF4444' };
+      case 'reps': return { icon: '🔢', label: '次数突破', color: '#3B82F6' };
+      case 'volume': return { icon: '📈', label: '总量突破', color: '#10B981' };
+      case 'first': return { icon: '🎯', label: '首项纪录', color: '#8B5CF6' };
+      default: return { icon: '🏆', label: '个人纪录', color: '#F59E0B' };
+    }
+  };
+  
+  const groupedPRs = {};
+  prEntries.forEach(pr => {
+    const exercise = exerciseLibrary.find(e => e.name === pr.name);
+    const category = exercise ? exercise.category : 'custom';
+    if (!groupedPRs[category]) {
+      groupedPRs[category] = [];
+    }
+    groupedPRs[category].push(pr);
+  });
+  
+  return `
+    <div class="page active">
+      <div class="card" style="background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%); color: white;">
+        <div style="font-size: 14px; opacity: 0.9; margin-bottom: 8px;">🏆 个人纪录总数</div>
+        <div style="font-size: 48px; font-weight: 700;">${prCount}</div>
+        <div style="font-size: 14px; opacity: 0.9; margin-top: 8px;">继续突破极限！</div>
+      </div>
+      
+      ${prCount === 0 ? `
+      <div class="empty-state">
+        <div style="font-size: 64px; margin-bottom: 16px;">🎯</div>
+        <div style="font-size: 18px; font-weight: 600; color: var(--text); margin-bottom: 8px;">暂无个人纪录</div>
+        <div style="font-size: 14px;">完成训练后，系统会自动检测并记录您的最佳成绩</div>
+        <button class="btn btn-primary" style="margin-top: 20px;" onclick="navigateTo('workout')">
+          开始训练
+        </button>
+      </div>
+      ` : `
+      ${Object.entries(groupedPRs).map(([category, items]) => {
+        const catInfo = categories[category] || { name: '其他', icon: '📋', color: '#64748B' };
+        return `
+          <div class="card">
+            <div class="card-title" style="display: flex; align-items: center; gap: 8px;">
+              <span>${catInfo.icon}</span>
+              <span>${catInfo.name}</span>
+              <span style="font-size: 12px; color: var(--text-muted);">(${items.length})</span>
+            </div>
+            <div style="margin-top: 12px;">
+              ${items.map((pr, index) => {
+                const breakType = getBreakTypeInfo(pr.type);
+                return `
+                  <div class="pr-item" style="border-left: 4px solid ${catInfo.color};">
+                    <div style="flex: 1;">
+                      <div style="display: flex; align-items: center; gap: 8px;">
+                        <span class="pr-name">${pr.name}</span>
+                        <span style="font-size: 12px; padding: 2px 8px; border-radius: 10px; background: ${breakType.color}15; color: ${breakType.color};">
+                          ${breakType.icon} ${breakType.label}
+                        </span>
+                      </div>
+                      <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">
+                        ${Utils.formatDate(pr.date)}
+                        ${index === 0 && items.length > 1 ? '🏆 本组最高' : ''}
+                      </div>
+                    </div>
+                    <div class="pr-info">
+                      <span class="pr-value">${pr.weight}kg × ${pr.reps}次</span>
+                      <span style="font-size: 12px; color: var(--text-muted);">${pr.weight * pr.reps}kg</span>
+                    </div>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          </div>
+        `;
+      }).join('')}
+      
+      <div class="card">
+        <div class="card-title">📊 PR 突破类型说明</div>
+        <div style="font-size: 14px; color: var(--text-muted); line-height: 1.8;">
+          <div style="margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">
+            <span style="font-size: 18px;">💪</span>
+            <div>
+              <strong style="color: #EF4444;">重量突破</strong>
+              <div style="font-size: 12px;">举起比以前更重的重量</div>
+            </div>
+          </div>
+          <div style="margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">
+            <span style="font-size: 18px;">🔢</span>
+            <div>
+              <strong style="color: #3B82F6;">次数突破</strong>
+              <div style="font-size: 12px;">相同重量下完成更多次数</div>
+            </div>
+          </div>
+          <div style="margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">
+            <span style="font-size: 18px;">📈</span>
+            <div>
+              <strong style="color: #10B981;">总量突破</strong>
+              <div style="font-size: 12px;">重量 × 次数的总训练量更高</div>
+            </div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="font-size: 18px;">🎯</span>
+            <div>
+              <strong style="color: #8B5CF6;">首项纪录</strong>
+              <div style="font-size: 12px;">首次完成该动作的记录</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      `}
+    </div>
+  `;
+}
+
+/**
  * 渲染首页
  */
 function renderHomePage() {
@@ -135,6 +305,10 @@ function renderHomePage() {
   const weekStart = Utils.getWeekStart(new Date());
   const weekWorkouts = appData.workouts.filter(w => new Date(w.date) >= weekStart);
   const weekSets = weekWorkouts.reduce((sum, w) => sum + w.sets, 0);
+  
+  const streak = calculateStreak();
+  const prs = Storage.getPRs();
+  const prCount = Object.keys(prs).length;
   
   const recentProgress = detectRecentProgress();
   
@@ -162,7 +336,7 @@ function renderHomePage() {
       
       <div class="card">
         <div class="card-title">今日状态</div>
-        <div class="grid-3">
+        <div class="grid-4">
           <div>
             <div class="card-value">${todayWorkout ? '✓' : '—'}</div>
             <div class="card-unit">训练</div>
@@ -175,15 +349,19 @@ function renderHomePage() {
             <div class="card-value">${latestBody ? latestBody.weight : '—'}</div>
             <div class="card-unit">${latestBody ? 'kg' : '体重'}</div>
           </div>
+          <div>
+            <div class="card-value" style="color: #F59E0B;">🔥${streak}</div>
+            <div class="card-unit">连续天数</div>
+          </div>
         </div>
       </div>
       
       <div class="card">
         <div class="card-title">本周训练</div>
-        <div class="grid-3">
+        <div class="grid-4">
           <div>
             <div class="card-value">${weekWorkouts.length}</div>
-            <div class="card-unit">次</div>
+            <div class="card-unit">次数</div>
           </div>
           <div>
             <div class="card-value">${weekSets}</div>
@@ -192,6 +370,10 @@ function renderHomePage() {
           <div>
             <div class="card-value">${weekWorkouts.length > 0 ? Math.round(weekSets / weekWorkouts.length) : 0}</div>
             <div class="card-unit">均组数</div>
+          </div>
+          <div>
+            <div class="card-value" style="color: #10B981;">🏆${prCount}</div>
+            <div class="card-unit">个人纪录</div>
           </div>
         </div>
       </div>
@@ -295,6 +477,8 @@ function renderStatsPage() {
   const totalWorkouts = appData.workouts.length;
   const totalSets = appData.workouts.reduce((sum, w) => sum + w.sets, 0);
   const totalExercises = appData.workouts.reduce((sum, w) => sum + w.exercises.length, 0);
+  const prs = Storage.getPRs();
+  const prCount = Object.keys(prs).length;
   
   const partCount = {};
   appData.workouts.forEach(w => {
@@ -305,11 +489,13 @@ function renderStatsPage() {
   
   const progressData = detectAllProgress();
   
+  const weeklyData = getWeeklyWorkoutData();
+  
   return `
     <div class="page active">
       <div class="card">
         <div class="card-title">训练总览</div>
-        <div class="grid-3">
+        <div class="grid-4">
           <div style="text-align: center;">
             <div class="card-value">${totalWorkouts}</div>
             <div class="card-unit">训练次数</div>
@@ -322,21 +508,41 @@ function renderStatsPage() {
             <div class="card-value">${totalExercises}</div>
             <div class="card-unit">动作次数</div>
           </div>
+          <div style="text-align: center;">
+            <div class="card-value" style="color: #F59E0B;">${prCount}</div>
+            <div class="card-unit">个人纪录</div>
+          </div>
         </div>
       </div>
       
+      ${weeklyData.labels.length > 0 ? `
+      <div class="card">
+        <div class="card-title">训练量趋势</div>
+        <div class="chart-container">
+          <canvas id="workoutTrendChart"></canvas>
+        </div>
+      </div>
+      ` : ''}
+      
       ${Object.keys(partCount).length > 0 ? `
       <div class="card">
-        <div class="card-title">部位训练频次</div>
+        <div class="card-title">部位分布</div>
+        <div class="chart-container">
+          <canvas id="partDistributionChart"></canvas>
+        </div>
+      </div>
+      ` : ''}
+      
+      ${prCount > 0 ? `
+      <div class="card">
+        <div class="card-title">🏆 个人纪录详情</div>
         <div style="margin-top: 12px;">
-          ${Object.entries(partCount).sort((a, b) => b[1] - a[1]).map(([part, count]) => `
-            <div style="margin-bottom: 8px;">
-              <div style="display: flex; justify-content: space-between; font-size: 14px;">
-                <span>${part}</span>
-                <span style="color: var(--text-muted);">${count}次</span>
-              </div>
-              <div class="progress-bar">
-                <div class="progress-fill" style="width: ${(count / totalWorkouts) * 100}%"></div>
+          ${Object.entries(prs).sort((a, b) => new Date(b[1].date) - new Date(a[1].date)).map(([name, pr]) => `
+            <div class="pr-item">
+              <div class="pr-name">${name}</div>
+              <div class="pr-info">
+                <span class="pr-value">${pr.weight}kg × ${pr.reps}次</span>
+                <span class="pr-date">${Utils.formatDate(pr.date)}</span>
               </div>
             </div>
           `).join('')}
@@ -365,7 +571,16 @@ function renderStatsPage() {
           <canvas id="calorieChart"></canvas>
         </div>
       </div>
-      ` : ''}
+      ` : `
+      <div class="card">
+        <div class="card-title">饮食统计</div>
+        <div style="text-align: center; padding: 20px; color: var(--text-muted);">
+          <div style="font-size: 32px; margin-bottom: 8px;">🥗</div>
+          <div>暂无饮食记录</div>
+          <div style="font-size: 12px; margin-top: 4px;">记录饮食以查看统计数据</div>
+        </div>
+      </div>
+      `}
       
       ${progressData.length > 0 ? `
       <div class="card">
@@ -397,6 +612,127 @@ function renderStatsPage() {
       </div>
     </div>
   `;
+}
+
+/**
+ * 获取每周训练数据
+ */
+function getWeeklyWorkoutData() {
+  const now = new Date();
+  const labels = [];
+  const data = [];
+  
+  for (let i = 7; i >= 0; i--) {
+    const date = new Date(now);
+    date.setDate(date.getDate() - i);
+    const weekStart = Utils.getWeekStart(date);
+    const weekEnd = new Date(weekStart);
+    weekEnd.setDate(weekEnd.getDate() + 6);
+    
+    const weekLabel = `${weekStart.getMonth() + 1}/${weekStart.getDate()}`;
+    const weekWorkouts = appData.workouts.filter(w => {
+      const workoutDate = new Date(w.date);
+      return workoutDate >= weekStart && workoutDate <= weekEnd;
+    });
+    
+    const weeklyVolume = weekWorkouts.reduce((sum, w) => {
+      return sum + w.exercises.reduce((exSum, ex) => {
+        return exSum + ex.weight * ex.totalReps;
+      }, 0);
+    }, 0);
+    
+    labels.push(weekLabel);
+    data.push(weeklyVolume);
+  }
+  
+  return { labels, data };
+}
+
+/**
+ * 渲染统计页面图表
+ */
+function renderStatsCharts() {
+  const weeklyData = getWeeklyWorkoutData();
+  
+  if (weeklyData.labels.length > 0) {
+    const ctx1 = document.getElementById('workoutTrendChart');
+    if (ctx1) {
+      new Chart(ctx1, {
+        type: 'line',
+        data: {
+          labels: weeklyData.labels,
+          datasets: [{
+            label: '训练量',
+            data: weeklyData.data,
+            borderColor: '#2563EB',
+            backgroundColor: 'rgba(37, 99, 235, 0.1)',
+            fill: true,
+            tension: 0.4,
+            pointBackgroundColor: '#2563EB',
+            pointBorderColor: '#fff',
+            pointBorderWidth: 2,
+            pointRadius: 4
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              grid: { color: '#E2E8F0' }
+            },
+            x: {
+              grid: { display: false }
+            }
+          }
+        }
+      });
+    }
+  }
+  
+  const partCount = {};
+  appData.workouts.forEach(w => {
+    w.parts.forEach(p => {
+      partCount[p] = (partCount[p] || 0) + 1;
+    });
+  });
+  
+  if (Object.keys(partCount).length > 0) {
+    const ctx2 = document.getElementById('partDistributionChart');
+    if (ctx2) {
+      const colors = ['#2563EB', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', '#06B6D4', '#84CC16'];
+      new Chart(ctx2, {
+        type: 'doughnut',
+        data: {
+          labels: Object.keys(partCount),
+          datasets: [{
+            data: Object.values(partCount),
+            backgroundColor: colors.slice(0, Object.keys(partCount).length),
+            borderWidth: 0,
+            hoverOffset: 10
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'right',
+              labels: {
+                padding: 15,
+                usePointStyle: true
+              }
+            }
+          },
+          cutout: '60%'
+        }
+      });
+    }
+  }
 }
 
 /**
@@ -463,6 +799,7 @@ function bindPageEvents(page) {
       BodyModule.renderWeightChart();
     } else if (page === 'stats') {
       renderCalorieChart();
+      renderStatsCharts();
     }
   }, 100);
 }
