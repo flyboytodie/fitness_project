@@ -96,6 +96,9 @@ const SettingsModule = {
           <button class="btn btn-secondary" style="width: 100%; margin-bottom: 8px;" onclick="SettingsModule.showImportFormat()">
             📋 查看导入格式 & 下载模板
           </button>
+          <button class="btn btn-secondary" style="width: 100%;" onclick="SettingsModule.updateExerciseLibrary()">
+            🔄 更新动作库
+          </button>
         </div>
         
         <!-- 清除数据 -->
@@ -113,6 +116,9 @@ const SettingsModule = {
             </button>
             <button class="btn btn-secondary" style="flex: 1;" onclick="SettingsModule.confirmClearBody()">
               身体
+            </button>
+            <button class="btn btn-secondary" style="flex: 1;" onclick="SettingsModule.confirmClearExerciseLibrary()">
+              动作库
             </button>
           </div>
         </div>
@@ -283,7 +289,7 @@ const SettingsModule = {
    */
   exportAsMarkdown() {
     let md = `# 健身记录数据\n\n`;
-    md += `> 导出日期：${new Date().toLocaleString('zh-CN')}\n\n`;
+    md += `> 导出日期：${new Date().toISOString().split('T')[0]}\n\n`;
     
     // 训练记录
     md += `## 📅 训练记录\n\n`;
@@ -305,14 +311,22 @@ const SettingsModule = {
     });
     md += `\n`;
     
-    // 身体数据
-    md += `## ⚖️ 身体数据\n\n`;
-    md += `| 日期 | 体重(kg) | 胸围(cm) | 腰围(cm) | 臀围(cm) | 上臂(cm) | 大腿(cm) |\n`;
-    md += `|------|----------|----------|----------|----------|----------|----------|\n`;
-    appData.body.forEach(b => {
-      md += `| ${b.date} | ${b.weight} | ${b.chest || '-'} | ${b.waist || '-'} | ${b.hips || '-'} | ${b.arm || '-'} | ${b.leg || '-'} |\n`;
+    // 动作库
+    md += `## 🏋️ 动作库\n\n`;
+    md += `| 动作名称 | 锻炼部位 | 使用器材 |\n`;
+    md += `|----------|----------|----------|\n`;
+    appData.exerciseLibrary.forEach(ex => {
+      md += `| ${ex.name} | ${ex.muscle} | ${ex.equipment || '其他'} |\n`;
     });
     md += `\n`;
+    
+    // 身体数据
+    md += `## ⚖️ 身体数据\n\n`;
+    md += `| 日期 | 体重(kg) | 身高(cm) | 胸围(cm) | 腰围(cm) | 臀围(cm) | 大腿围(cm) | 备注 |\n`;
+    md += `|------|----------|----------|----------|----------|----------|------------|------|\n`;
+    appData.body.forEach(b => {
+      md += `| ${b.date} | ${b.weight || '-'} | ${b.height || '-'} | ${b.chest || '-'} | ${b.waist || '-'} | ${b.hips || '-'} | ${b.leg || '-'} | ${b.notes || ''} |\n`;
+    });
     
     // 收藏动作
     md += `## ⭐ 收藏动作\n\n`;
@@ -393,6 +407,14 @@ const SettingsModule = {
             appData.body = deduplicatedBody;
             Storage.saveBody(appData.body);
           }
+          if (data.exerciseLibrary && data.exerciseLibrary.length > 0) {
+            data.exerciseLibrary.forEach(ex => {
+              if (!appData.exerciseLibrary.find(e => e.name === ex.name)) {
+                appData.exerciseLibrary.push(ex);
+              }
+            });
+            Storage.saveExerciseLibrary(appData.exerciseLibrary);
+          }
           if (data.templates && data.templates.length > 0) {
             const existingIds = new Set(appData.templates.map(t => t.id));
             const newTemplates = data.templates.filter(t => !existingIds.has(t.id));
@@ -411,6 +433,9 @@ const SettingsModule = {
           }
           
           let importMsg = `导入成功！训练: ${data.workouts?.length || 0}条，饮食: ${data.diet?.length || 0}条`;
+          if (data.exerciseLibrary?.length > 0) {
+            importMsg += `，动作库: ${data.exerciseLibrary.length}个`;
+          }
           if (data.starredExercises?.length > 0) {
             importMsg += `，收藏动作: ${data.starredExercises.length}个`;
           }
@@ -752,6 +777,7 @@ const SettingsModule = {
       workouts: [],
       diet: [],
       body: [],
+      exerciseLibrary: [],
       starredExercises: [],
       templates: []
     };
@@ -782,6 +808,10 @@ const SettingsModule = {
           inTemplateSection = false;
         } else if (line.includes('⚖️') || line.includes('身体')) {
           currentSection = 'body';
+          inStarredSection = false;
+          inTemplateSection = false;
+        } else if (line.includes('🏋️') || line.includes('动作库')) {
+          currentSection = 'exercise';
           inStarredSection = false;
           inTemplateSection = false;
         } else if (line.includes('⭐') || line.includes('收藏动作')) {
@@ -842,14 +872,18 @@ const SettingsModule = {
         }
         
         if (parts.length >= 2) {
-          const dateStr = this.parseDate(parts[0]);
-          if (dateStr) {
-            if (currentSection === 'workout') {
-              this.parseWorkoutTableRow(data, dateStr, parts, tableHeaders);
-            } else if (currentSection === 'diet') {
-              this.parseDietTableRow(data, dateStr, parts, tableHeaders);
-            } else if (currentSection === 'body') {
-              this.parseBodyTableRow(data, dateStr, parts, tableHeaders);
+          if (currentSection === 'exercise') {
+            this.parseExerciseTableRow(data, parts, tableHeaders);
+          } else {
+            const dateStr = this.parseDate(parts[0]);
+            if (dateStr) {
+              if (currentSection === 'workout') {
+                this.parseWorkoutTableRow(data, dateStr, parts, tableHeaders);
+              } else if (currentSection === 'diet') {
+                this.parseDietTableRow(data, dateStr, parts, tableHeaders);
+              } else if (currentSection === 'body') {
+                this.parseBodyTableRow(data, dateStr, parts, tableHeaders);
+              }
             }
           }
         }
@@ -859,6 +893,37 @@ const SettingsModule = {
     }
     
     return data;
+  },
+  
+  /**
+   * 解析动作库表格行
+   * 表格格式: | 动作名称 | 锻炼部位 | 使用器材 |
+   */
+  parseExerciseTableRow(data, parts, headers) {
+    const headerIndex = (name) => {
+      return headers.findIndex(h => h.includes(name));
+    };
+    
+    const nameIdx = headerIndex('动作');
+    const muscleIdx = headerIndex('部位');
+    const equipmentIdx = headerIndex('器材');
+    
+    if (nameIdx === -1) return;
+    
+    const name = parts[nameIdx] || '';
+    if (!name.trim()) return;
+    
+    const muscle = parts[muscleIdx] || '其他';
+    const equipment = parts[equipmentIdx] || '其他';
+    
+    if (!data.exerciseLibrary.find(ex => ex.name === name)) {
+      data.exerciseLibrary.push({
+        name,
+        muscle,
+        category: this.getCategoryFromMuscle(muscle),
+        equipment
+      });
+    }
   },
   
   /**
@@ -1655,6 +1720,73 @@ const SettingsModule = {
   },
 
   /**
+   * 更新动作库
+   * 从已导入的训练数据中提取新动作并添加到动作库
+   */
+  updateExerciseLibrary() {
+    // 从现有训练数据中提取所有动作
+    const exercisesFromData = new Set();
+    appData.workouts.forEach(w => {
+      w.exercises.forEach(e => {
+        exercisesFromData.add(e.name);
+      });
+    });
+    
+    // 获取当前动作库中的动作名称
+    const existingExercises = new Set(appData.exerciseLibrary.map(e => e.name));
+    
+    // 找出新动作
+    const newExercises = [...exercisesFromData].filter(name => !existingExercises.has(name));
+    
+    if (newExercises.length === 0) {
+      Utils.showToast('动作库已是最新，没有新动作需要添加');
+      return;
+    }
+    
+    Utils.showConfirm(
+      '🔄',
+      '确认更新动作库',
+      `发现 ${newExercises.length} 个新动作，是否添加到动作库？\n\n${newExercises.join('\n')}`,
+      () => {
+        // 为新动作添加到动作库
+        newExercises.forEach(name => {
+          const muscle = Utils.getExercisePart(name);
+          const category = this.getCategoryFromMuscle(muscle);
+          appData.exerciseLibrary.push({
+            name,
+            muscle,
+            category,
+            equipment: '其他'
+          });
+        });
+        
+        // 保存到本地存储
+        Storage.saveExerciseLibrary(appData.exerciseLibrary);
+        
+        Utils.showToast(`动作库已更新！新增 ${newExercises.length} 个动作`);
+        navigateTo('settings');
+      },
+      () => {}
+    );
+  },
+
+  /**
+   * 根据部位获取分类
+   */
+  getCategoryFromMuscle(muscle) {
+    const categoryMap = {
+      '胸': 'chest',
+      '背': 'back',
+      '肩': 'shoulder',
+      '腿': 'legs',
+      '三头': 'triceps',
+      '二头': 'biceps',
+      '其他': 'other'
+    };
+    return categoryMap[muscle] || 'other';
+  },
+
+  /**
    * 确认清除训练记录
    */
   confirmClearWorkouts() {
@@ -1689,6 +1821,19 @@ const SettingsModule = {
       '确认清除身体数据',
       `将删除全部 ${appData.body.length} 条身体数据，且无法恢复！`,
       () => this.clearBody(),
+      () => {}
+    );
+  },
+
+  /**
+   * 确认清除动作库
+   */
+  confirmClearExerciseLibrary() {
+    Utils.showConfirm(
+      '🗑️',
+      '确认清除动作库',
+      `将删除全部 ${appData.exerciseLibrary.length} 个动作，且无法恢复！`,
+      () => this.clearExerciseLibrary(),
       () => {}
     );
   },
@@ -1731,6 +1876,16 @@ const SettingsModule = {
     Storage.saveBody([]);
     Utils.showToast('身体数据已清除');
     navigateTo('body');
+  },
+
+  /**
+   * 清除动作库
+   */
+  clearExerciseLibrary() {
+    appData.exerciseLibrary = [];
+    Storage.saveExerciseLibrary([]);
+    Utils.showToast('动作库已清除');
+    navigateTo('exercise');
   },
 
   /**

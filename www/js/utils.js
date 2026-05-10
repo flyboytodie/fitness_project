@@ -3,7 +3,78 @@
  * 包含通用的工具函数
  */
 
+const EXERCISE_PARTS = {
+  '杠铃卧推': '胸',
+  '上斜哑铃卧推': '胸',
+  '固定器械推胸': '胸',
+  '固定器械夹胸': '胸',
+  '龙门架夹胸': '胸',
+  '哑铃飞鸟递减': '肩',
+  '蝴蝶机反向飞鸟': '肩',
+  '哑铃推肩': '肩',
+  '实力推': '肩',
+  '龙门架后束飞鸟': '肩',
+  '杠铃提拉': '肩',
+  '引体向上': '背',
+  '器械拉背': '背',
+  '高位下拉': '背',
+  '器械划船': '背',
+  '龙门架V把划船': '背',
+  '深蹲': '腿',
+  '腿弯举': '腿',
+  '器械内收': '腿',
+  '绳索下压': '三头',
+  '臂屈伸': '三头',
+  '哑铃弯举': '二头',
+  '杠铃弯举': '二头',
+  '锤式弯举': '二头'
+};
+
+const EXERCISES_FROM_DATA = [
+  { name: '杠铃卧推', muscle: '胸', category: 'chest', equipment: '杠铃' },
+  { name: '上斜哑铃卧推', muscle: '胸', category: 'chest', equipment: '哑铃' },
+  { name: '固定器械推胸', muscle: '胸', category: 'chest', equipment: '器械' },
+  { name: '固定器械夹胸', muscle: '胸', category: 'chest', equipment: '器械' },
+  { name: '龙门架夹胸', muscle: '胸', category: 'chest', equipment: '龙门架' },
+  { name: '哑铃飞鸟递减', muscle: '肩', category: 'shoulder', equipment: '哑铃' },
+  { name: '蝴蝶机反向飞鸟', muscle: '肩', category: 'shoulder', equipment: '器械' },
+  { name: '哑铃推肩', muscle: '肩', category: 'shoulder', equipment: '哑铃' },
+  { name: '实力推', muscle: '肩', category: 'shoulder', equipment: '杠铃' },
+  { name: '龙门架后束飞鸟', muscle: '肩', category: 'shoulder', equipment: '龙门架' },
+  { name: '杠铃提拉', muscle: '肩', category: 'shoulder', equipment: '杠铃' },
+  { name: '引体向上', muscle: '背', category: 'back', equipment: '单杠' },
+  { name: '器械拉背', muscle: '背', category: 'back', equipment: '器械' },
+  { name: '高位下拉', muscle: '背', category: 'back', equipment: '器械' },
+  { name: '器械划船', muscle: '背', category: 'back', equipment: '器械' },
+  { name: '龙门架V把划船', muscle: '背', category: 'back', equipment: '龙门架' },
+  { name: '深蹲', muscle: '腿', category: 'legs', equipment: '杠铃' },
+  { name: '腿弯举', muscle: '腿', category: 'legs', equipment: '器械' },
+  { name: '器械内收', muscle: '腿', category: 'legs', equipment: '器械' },
+  { name: '绳索下压', muscle: '三头', category: 'triceps', equipment: '绳索' },
+  { name: '臂屈伸', muscle: '三头', category: 'triceps', equipment: '徒手' },
+  { name: '哑铃弯举', muscle: '二头', category: 'biceps', equipment: '哑铃' },
+  { name: '杠铃弯举', muscle: '二头', category: 'biceps', equipment: '杠铃' },
+  { name: '锤式弯举', muscle: '二头', category: 'biceps', equipment: '哑铃' }
+];
+
 const Utils = {
+  /**
+   * 根据动作名称获取部位
+   * @param {string} exerciseName - 动作名称
+   * @returns {string} - 部位名称
+   */
+  getExercisePart(exerciseName) {
+    return EXERCISE_PARTS[exerciseName] || '其他';
+  },
+
+  /**
+   * 从数据文件中获取完整的动作库
+   * @returns {Array} - 动作数组
+   */
+  getExercisesFromData() {
+    return [...EXERCISES_FROM_DATA];
+  },
+
   /**
    * 获取一周的开始日期
    * @param {Date} date - 日期对象

@@ -30,41 +30,19 @@ const Storage = {
    */
   initExerciseLibrary() {
     if (!localStorage.getItem(this.KEYS.EXERCISE_LIBRARY)) {
-      const defaultExercises = [
-        { name: '杠铃卧推', muscle: '胸', category: 'chest', equipment: '杠铃' },
-        { name: '哑铃卧推', muscle: '胸', category: 'chest', equipment: '哑铃' },
-        { name: '上斜哑铃推举', muscle: '胸', category: 'chest', equipment: '哑铃' },
-        { name: '双杠臂屈伸', muscle: '胸', category: 'chest', equipment: '徒手' },
-        { name: '俯卧撑', muscle: '胸', category: 'chest', equipment: '徒手' },
-        { name: '飞鸟', muscle: '胸', category: 'chest', equipment: '哑铃' },
-        { name: '引体向上', muscle: '背', category: 'back', equipment: '单杠' },
-        { name: '高位下拉', muscle: '背', category: 'back', equipment: '器械' },
-        { name: '划船', muscle: '背', category: 'back', equipment: '杠铃/哑铃' },
-        { name: '坐姿划船', muscle: '背', category: 'back', equipment: '器械' },
-        { name: '硬拉', muscle: '背', category: 'back', equipment: '杠铃' },
-        { name: '山羊挺身', muscle: '背', category: 'back', equipment: '器械' },
-        { name: '哑铃侧平举', muscle: '肩', category: 'shoulder', equipment: '哑铃' },
-        { name: '坐姿推举', muscle: '肩', category: 'shoulder', equipment: '杠铃/器械' },
-        { name: '前平举', muscle: '肩', category: 'shoulder', equipment: '哑铃' },
-        { name: '俯身飞鸟', muscle: '肩', category: 'shoulder', equipment: '哑铃' },
-        { name: '深蹲', muscle: '腿', category: 'legs', equipment: '杠铃' },
-        { name: '弓步蹲', muscle: '腿', category: 'legs', equipment: '哑铃/徒手' },
-        { name: '腿举', muscle: '腿', category: 'legs', equipment: '器械' },
-        { name: '腿弯举', muscle: '腿', category: 'legs', equipment: '器械' },
-        { name: '腿屈伸', muscle: '腿', category: 'legs', equipment: '器械' },
-        { name: '提踵', muscle: '腿', category: 'legs', equipment: '器械' },
-        { name: '弯举', muscle: '手臂', category: 'arms', equipment: '哑铃/杠铃' },
-        { name: '锤式弯举', muscle: '手臂', category: 'arms', equipment: '哑铃' },
-        { name: '三头下压', muscle: '手臂', category: 'arms', equipment: '绳索' },
-        { name: '颈后臂屈伸', muscle: '手臂', category: 'arms', equipment: '哑铃' },
-        { name: '俯卧撑', muscle: '手臂', category: 'arms', equipment: '徒手' },
-        { name: '跑步', muscle: '有氧', category: 'cardio', equipment: '跑步机' },
-        { name: '游泳', muscle: '有氧', category: 'cardio', equipment: '泳池' },
-        { name: '骑行', muscle: '有氧', category: 'cardio', equipment: '自行车' },
-        { name: '椭圆机', muscle: '有氧', category: 'cardio', equipment: '器械' }
-      ];
+      const defaultExercises = Utils.getExercisesFromData();
       localStorage.setItem(this.KEYS.EXERCISE_LIBRARY, JSON.stringify(defaultExercises));
     }
+  },
+
+  /**
+   * 重置动作库
+   * 使用数据文件中的动作覆盖当前动作库
+   */
+  resetExerciseLibrary() {
+    const defaultExercises = Utils.getExercisesFromData();
+    localStorage.setItem(this.KEYS.EXERCISE_LIBRARY, JSON.stringify(defaultExercises));
+    Utils.showToast('动作库已重置！', null, null, 3000);
   },
 
   /**
@@ -461,7 +439,7 @@ const Storage = {
    */
   clearAllData() {
     Object.values(this.KEYS).forEach(key => localStorage.removeItem(key));
-    this.init();
+    // 不调用 init()，因为 init() 会自动创建默认动作库
   },
 
   /**

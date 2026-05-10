@@ -116,6 +116,9 @@ function renderPage(page) {
     case 'stats':
       app.innerHTML = renderStatsPage();
       break;
+    case 'exercise':
+      ExerciseModule.render();
+      break;
     case 'settings':
       app.innerHTML = SettingsModule.renderSettingsPage();
       break;
@@ -507,8 +510,9 @@ function renderStatsPage() {
   
   const partCount = {};
   appData.workouts.forEach(w => {
-    w.parts.forEach(p => {
-      partCount[p] = (partCount[p] || 0) + 1;
+    w.exercises.forEach(e => {
+      const part = Utils.getExercisePart(e.name);
+      partCount[part] = (partCount[part] || 0) + 1;
     });
   });
   
@@ -556,7 +560,7 @@ function renderStatsPage() {
       <div class="card">
         <div class="card-title">部位分布</div>
         <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px; padding-left: 4px;">
-          📈 统计各部位训练次数 · 一个训练可能包含多个部位
+          📈 按动作统计各部位训练次数 · 部位分类: 胸、背、肩、腿、二头、三头
         </div>
         <div class="chart-container">
           <canvas id="partDistributionChart"></canvas>
