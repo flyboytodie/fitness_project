@@ -38,13 +38,40 @@ const Utils = {
    * @param {number} duration - 显示时长（毫秒）
    */
   showToast(message, actionText, actionCallback, duration = 5000) {
+    let container = document.querySelector('.toast-container');
+    if (!container) {
+      container = document.createElement('div');
+      container.className = 'toast-container';
+      container.style.position = 'fixed';
+      container.style.top = '100px';
+      container.style.left = '50%';
+      container.style.transform = 'translateX(-50%)';
+      container.style.zIndex = '1000';
+      container.style.width = '100%';
+      container.style.maxWidth = '480px';
+      container.style.padding = '0 16px';
+      document.body.appendChild(container);
+    }
+    
     const toast = document.createElement('div');
     toast.className = 'toast';
+    toast.style.background = '#1E293B';
+    toast.style.color = 'white';
+    toast.style.padding = '14px 16px';
+    toast.style.borderRadius = '10px';
+    toast.style.display = 'flex';
+    toast.style.justifyContent = 'space-between';
+    toast.style.alignItems = 'center';
+    toast.style.boxShadow = '0 4px 12px rgba(0,0,0,0.3)';
+    toast.style.marginBottom = '8px';
+    toast.style.opacity = '0';
+    toast.style.transform = 'translateY(-20px)';
+    toast.style.transition = 'all 0.3s ease-out';
     
     if (actionText && actionCallback) {
       toast.innerHTML = `
-        <span>${message}</span>
-        <button>${actionText}</button>
+        <span style="flex: 1; font-size: 14px;">${message}</span>
+        <button style="background: #2563EB; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; margin-left: 12px;">${actionText}</button>
       `;
       const button = toast.querySelector('button');
       button.onclick = () => {
@@ -53,15 +80,20 @@ const Utils = {
       };
     } else {
       toast.innerHTML = `
-        <span>${message}</span>
+        <span style="flex: 1; font-size: 14px;">${message}</span>
       `;
     }
     
-    document.body.appendChild(toast);
+    container.appendChild(toast);
     
-    setTimeout(() => toast.classList.add('show'), 10);
     setTimeout(() => {
-      toast.classList.remove('show');
+      toast.style.opacity = '1';
+      toast.style.transform = 'translateY(0)';
+    }, 10);
+    
+    setTimeout(() => {
+      toast.style.opacity = '0';
+      toast.style.transform = 'translateY(-20px)';
       setTimeout(() => toast.remove(), 300);
     }, duration);
   },
@@ -198,6 +230,27 @@ const Utils = {
     if (!weight || !height) return 0;
     const heightInMeters = height / 100;
     return (weight / (heightInMeters * heightInMeters)).toFixed(1);
+  },
+
+  /**
+   * 计算基础代谢率 (BMR)
+   * 使用 Mifflin-St Jeor 公式
+   * @param {Object} data - 个人数据
+   * @param {number} data.weight - 体重(kg)
+   * @param {number} data.height - 身高(cm)
+   * @param {number} data.age - 年龄
+   * @param {string} data.gender - 性别 (male/female)
+   * @returns {number} - BMR值
+   */
+  calculateBMR(data) {
+    if (!data.weight || !data.height || !data.age) return 0;
+    
+    // Mifflin-St Jeor 公式
+    if (data.gender === 'female') {
+      return Math.round(10 * data.weight + 6.25 * data.height - 5 * data.age - 161);
+    } else {
+      return Math.round(10 * data.weight + 6.25 * data.height - 5 * data.age + 5);
+    }
   },
 
   /**

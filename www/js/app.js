@@ -139,15 +139,18 @@ function renderHomePage() {
   const recentProgress = detectRecentProgress();
   
   let quickStartHTML = '';
-  if (appData.lastWorkout) {
+  if (!todayWorkout && appData.lastWorkout) {
     quickStartHTML = `
       <div class="card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
-        <div style="font-weight: 600; margin-bottom: 8px;">继续上次训练</div>
-        <div style="font-size: 14px; opacity: 0.9; margin-bottom: 12px;">
-          ${appData.lastWorkout.parts.join('+')} · ${appData.lastWorkout.exercises.length}个动作
+        <div style="font-weight: 600; margin-bottom: 8px;">记录今天训练</div>
+        <div style="font-size: 14px; opacity: 0.9; margin-bottom: 4px;">
+          上次: ${appData.lastWorkout.parts.join('+')} · ${appData.lastWorkout.exercises.length}个动作
+        </div>
+        <div style="font-size: 12px; opacity: 0.75; margin-bottom: 12px;">
+          ${Utils.formatDate(appData.lastWorkout.date)}
         </div>
         <button class="btn btn-secondary" style="background: white; color: #667eea; width: 100%;" onclick="continueLastWorkout()">
-          继续训练 →
+          开始训练 →
         </button>
       </div>
     `;
@@ -531,7 +534,7 @@ function showProblemTracker() {
       <button class="modal-close" onclick="Utils.closeModal()">×</button>
     </div>
     <div>
-      <button class="btn btn-secondary" style="margin-bottom: 12px; width: 100%;" onclick="ProblemTracker.addProblemForm()">
+      <button class="btn btn-secondary" style="margin-bottom: 12px; width: 100%;" onclick="showAddProblemModal()">
         + 添加问题记录
       </button>
       <div id="problemList">${problemsHtml}</div>

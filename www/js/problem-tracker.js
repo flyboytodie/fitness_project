@@ -396,4 +396,5 @@ function searchProblems() {
 
 // 导出到全局
 window.problemTracker = problemTracker;
+window.ProblemTracker = problemTracker;
 window.showProblemTracker = showProblemTracker;

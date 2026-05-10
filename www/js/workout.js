@@ -24,13 +24,13 @@ const WorkoutModule = {
         <div class="page-header">
           <h1>训练记录</h1>
           <div class="header-actions">
-            <button class="btn btn-primary" onclick="openAddWorkoutModal()">
+            <button class="btn btn-primary" onclick="WorkoutModule.openAddWorkoutModal()">
               ➕ 记录训练
             </button>
           </div>
         </div>
         
-        <button class="btn btn-secondary" style="margin-bottom: 16px;" onclick="openTemplateModal()">
+        <button class="btn btn-secondary" style="margin-bottom: 16px;" onclick="WorkoutModule.openTemplateModal()">
           📋 使用训练模板
         </button>
         
@@ -156,25 +156,30 @@ const WorkoutModule = {
           <div class="card">
             <div class="input-group">
               <label>动作列表</label>
-              <div class="search-box">
-                <input type="text" placeholder="🔍 搜索动作..." oninput="WorkoutModule.filterExercises(this.value)">
-              </div>
-              <div style="margin-bottom: 8px;">
-                <span class="tag tag-filter ${this.currentFilter === 'starred' ? 'active' : ''}" onclick="WorkoutModule.setFilter('starred')">⭐ 收藏</span>
-                <span class="tag tag-filter ${this.currentFilter === 'all' ? 'active' : ''}" onclick="WorkoutModule.setFilter('all')">全部</span>
-                <span class="tag tag-filter ${this.currentFilter === 'chest' ? 'active' : ''}" onclick="WorkoutModule.setFilter('chest')">胸</span>
-                <span class="tag tag-filter ${this.currentFilter === 'back' ? 'active' : ''}" onclick="WorkoutModule.setFilter('back')">背</span>
-                <span class="tag tag-filter ${this.currentFilter === 'shoulder' ? 'active' : ''}" onclick="WorkoutModule.setFilter('shoulder')">肩</span>
-                <span class="tag tag-filter ${this.currentFilter === 'legs' ? 'active' : ''}" onclick="WorkoutModule.setFilter('legs')">腿</span>
-                <span class="tag tag-filter ${this.currentFilter === 'arms' ? 'active' : ''}" onclick="WorkoutModule.setFilter('arms')">手臂</span>
-              </div>
-              <div id="exerciseSelectList" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 12px;">
-                ${exercises.map(e => `
-                  <span class="exercise-tag ${appData.starredExercises.includes(e.name) ? 'starred' : ''}" 
-                        onclick="WorkoutModule.addExerciseByName('${e.name}')">
-                    ${appData.starredExercises.includes(e.name) ? '⭐' : ''}${e.name}
-                  </span>
-                `).join('')}
+              <button type="button" class="collapse-btn" onclick="WorkoutModule.toggleExerciseList()" id="collapseBtn">
+                ▼ 展开动作列表
+              </button>
+              <div id="exerciseSelectContainer" style="display: none;">
+                <div class="search-box">
+                  <input type="text" placeholder="🔍 搜索动作..." oninput="WorkoutModule.filterExercises(this.value)">
+                </div>
+                <div style="margin-bottom: 8px;">
+                  <span class="tag tag-filter ${this.currentFilter === 'starred' ? 'active' : ''}" onclick="WorkoutModule.setFilter('starred')">⭐ 收藏</span>
+                  <span class="tag tag-filter ${this.currentFilter === 'all' ? 'active' : ''}" onclick="WorkoutModule.setFilter('all')">全部</span>
+                  <span class="tag tag-filter ${this.currentFilter === 'chest' ? 'active' : ''}" onclick="WorkoutModule.setFilter('chest')">胸</span>
+                  <span class="tag tag-filter ${this.currentFilter === 'back' ? 'active' : ''}" onclick="WorkoutModule.setFilter('back')">背</span>
+                  <span class="tag tag-filter ${this.currentFilter === 'shoulder' ? 'active' : ''}" onclick="WorkoutModule.setFilter('shoulder')">肩</span>
+                  <span class="tag tag-filter ${this.currentFilter === 'legs' ? 'active' : ''}" onclick="WorkoutModule.setFilter('legs')">腿</span>
+                  <span class="tag tag-filter ${this.currentFilter === 'arms' ? 'active' : ''}" onclick="WorkoutModule.setFilter('arms')">手臂</span>
+                </div>
+                <div id="exerciseSelectList" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 12px;">
+                  ${exercises.map(e => `
+                    <span class="exercise-tag ${appData.starredExercises.includes(e.name) ? 'starred' : ''}" 
+                          onclick="WorkoutModule.addExerciseByName('${e.name}')">
+                      ${appData.starredExercises.includes(e.name) ? '⭐' : ''}${e.name}
+                    </span>
+                  `).join('')}
+                </div>
               </div>
               <div id="exerciseList">${exerciseHtml}</div>
               <button type="button" class="btn btn-secondary" style="margin-top: 8px;" onclick="WorkoutModule.addEmptyExercise()">
@@ -199,39 +204,42 @@ const WorkoutModule = {
    */
   addExerciseByName(name) {
     const list = document.getElementById('exerciseList');
-    const index = list.children.length;
+    const exerciseId = 'ex-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
     const lastEx = this.getLastExerciseData(name);
     const defaultWeight = lastEx ? lastEx.weight : 0;
     const defaultSets = lastEx ? lastEx.sets : [8, 8, 8, 8];
     
     const html = `
-      <div class="exercise-item" id="exercise-${index}">
+      <div class="exercise-item selected" id="${exerciseId}">
         <div class="exercise-header">
           <div class="exercise-name-tag">${name}</div>
-          <button type="button" class="star-btn" id="star-${index}" 
-                  onclick="WorkoutModule.toggleStar(${index})" 
+          <button type="button" class="star-btn" id="star-${exerciseId}" 
+                  onclick="WorkoutModule.toggleStar('${exerciseId}')" 
                   style="visibility: visible;">
             ${appData.starredExercises.includes(name) ? '⭐' : '☆'}
           </button>
         </div>
-        <input type="hidden" name="exercise-${index}" value="${name}">
+        <input type="hidden" name="exercise-${exerciseId}" value="${name}">
         <div class="input-with-unit">
           <div class="input-group" style="flex:1">
             <label>重量</label>
-            <input type="number" name="weight-${index}" placeholder="55" step="0.5" value="${defaultWeight}">
+            <input type="number" name="weight-${exerciseId}" placeholder="55" step="0.5" value="${defaultWeight}">
           </div>
           <div class="input-group" style="flex:2">
             <label>次数</label>
-            <input type="text" name="reps-${index}" placeholder="8/8/8/8" value="${defaultSets.join('/')}">
+            <input type="text" name="reps-${exerciseId}" placeholder="8/8/8/8" value="${defaultSets.join('/')}">
           </div>
         </div>
         <div class="input-group" style="margin-top: 8px;">
-          <input type="text" name="notes-${index}" placeholder="备注：如最佳表现">
+          <input type="text" name="notes-${exerciseId}" placeholder="备注：如最佳表现">
         </div>
-        <button type="button" class="delete-btn" onclick="WorkoutModule.removeExercise(${index})">×</button>
+        <button type="button" class="delete-btn" onclick="WorkoutModule.removeExercise('${exerciseId}', '${name}')">×</button>
       </div>
     `;
     list.insertAdjacentHTML('beforeend', html);
+    
+    // 更新动作标签的选中状态
+    this.updateSelectedTags();
   },
 
   /**
@@ -239,13 +247,13 @@ const WorkoutModule = {
    */
   addEmptyExercise() {
     const list = document.getElementById('exerciseList');
-    const index = list.children.length;
+    const exerciseId = 'ex-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
     const exercises = this.getFilteredExercises();
     
     const html = `
-      <div class="exercise-item" id="exercise-${index}">
+      <div class="exercise-item" id="${exerciseId}">
         <div class="exercise-header">
-          <select name="exercise-${index}" class="exercise-select" onchange="WorkoutModule.onExerciseSelect(${index}, this.value)">
+          <select name="exercise-${exerciseId}" class="exercise-select" onchange="WorkoutModule.onExerciseSelect('${exerciseId}', this.value)">
             <option value="">➕ 选择动作</option>
             ${exercises.map(e => `
               <option value="${e.name}" ${appData.starredExercises.includes(e.name) ? 'data-starred="1"' : ''}>
@@ -253,22 +261,22 @@ const WorkoutModule = {
               </option>
             `).join('')}
           </select>
-          <button type="button" class="star-btn" id="star-${index}" onclick="WorkoutModule.toggleStar(${index})" style="visibility: hidden;">☆</button>
+          <button type="button" class="star-btn" id="star-${exerciseId}" onclick="WorkoutModule.toggleStar('${exerciseId}')" style="visibility: hidden;">☆</button>
         </div>
         <div class="input-with-unit">
           <div class="input-group" style="flex:1">
             <label>重量</label>
-            <input type="number" name="weight-${index}" placeholder="55" step="0.5">
+            <input type="number" name="weight-${exerciseId}" placeholder="55" step="0.5">
           </div>
           <div class="input-group" style="flex:2">
             <label>次数</label>
-            <input type="text" name="reps-${index}" placeholder="8/8/8/8">
+            <input type="text" name="reps-${exerciseId}" placeholder="8/8/8/8">
           </div>
         </div>
         <div class="input-group" style="margin-top: 8px;">
-          <input type="text" name="notes-${index}" placeholder="备注">
+          <input type="text" name="notes-${exerciseId}" placeholder="备注">
         </div>
-        <button type="button" class="delete-btn" onclick="WorkoutModule.removeExercise(${index})">×</button>
+        <button type="button" class="delete-btn" onclick="WorkoutModule.removeExercise('${exerciseId}')">×</button>
       </div>
     `;
     list.insertAdjacentHTML('beforeend', html);
@@ -276,11 +284,11 @@ const WorkoutModule = {
 
   /**
    * 动作选择回调
-   * @param {number} index - 索引
+   * @param {string} exerciseId - 动作唯一ID
    * @param {string} value - 动作名称
    */
-  onExerciseSelect(index, value) {
-    const starBtn = document.getElementById(`star-${index}`);
+  onExerciseSelect(exerciseId, value) {
+    const starBtn = document.getElementById(`star-${exerciseId}`);
     if (value) {
       starBtn.style.visibility = 'visible';
       starBtn.textContent = appData.starredExercises.includes(value) ? '⭐' : '☆';
@@ -288,8 +296,9 @@ const WorkoutModule = {
       
       const lastEx = this.getLastExerciseData(value);
       if (lastEx) {
-        document.querySelector(`[name="weight-${index}"]`).value = lastEx.weight;
-        document.querySelector(`[name="reps-${index}"]`).value = lastEx.sets.join('/');
+        const item = document.getElementById(exerciseId);
+        item.querySelector(`[name^="weight-"]`).value = lastEx.weight;
+        item.querySelector(`[name^="reps-"]`).value = lastEx.sets.join('/');
       }
     } else {
       starBtn.style.visibility = 'hidden';
@@ -298,16 +307,17 @@ const WorkoutModule = {
 
   /**
    * 切换收藏状态
-   * @param {number} index - 索引
+   * @param {string} exerciseId - 动作唯一ID
    */
-  toggleStar(index) {
-    const select = document.querySelector(`[name="exercise-${index}"]`);
-    const exerciseName = select ? select.value : document.querySelector(`[name="exercise-${index}"]`)?.value;
+  toggleStar(exerciseId) {
+    const item = document.getElementById(exerciseId);
+    const select = item.querySelector(`[name^="exercise-"]`);
+    const exerciseName = select ? select.value : item.querySelector(`[name^="exercise-"]`)?.value;
     if (!exerciseName) return;
     
     appData.starredExercises = Storage.toggleStarExercise(exerciseName);
     
-    const starBtn = document.getElementById(`star-${index}`);
+    const starBtn = document.getElementById(`star-${exerciseId}`);
     starBtn.textContent = appData.starredExercises.includes(exerciseName) ? '⭐' : '☆';
     starBtn.className = 'star-btn' + (appData.starredExercises.includes(exerciseName) ? ' starred' : '');
   },
@@ -344,6 +354,22 @@ const WorkoutModule = {
   filterExercises(query) {
     this.searchQuery = query.toLowerCase();
     this.updateExerciseSelectList();
+  },
+
+  /**
+   * 切换动作列表展开/收起
+   */
+  toggleExerciseList() {
+    const container = document.getElementById('exerciseSelectContainer');
+    const btn = document.getElementById('collapseBtn');
+    
+    if (container.style.display === 'none') {
+      container.style.display = 'block';
+      btn.textContent = '▲ 收起动作列表';
+    } else {
+      container.style.display = 'none';
+      btn.textContent = '▼ 展开动作列表';
+    }
   },
 
   /**
@@ -406,22 +432,42 @@ const WorkoutModule = {
 
   /**
    * 移除动作
-   * @param {number} index - 索引
+   * @param {string} exerciseId - 动作唯一ID
+   * @param {string} exerciseName - 动作名称（可选）
    */
-  removeExercise(index) {
-    const item = document.getElementById(`exercise-${index}`);
+  removeExercise(exerciseId, exerciseName = '') {
+    const item = document.getElementById(exerciseId);
     if (item) item.remove();
     
-    // 更新剩余项目的索引
+    // 更新动作标签的选中状态
+    this.updateSelectedTags();
+  },
+
+  /**
+   * 更新动作标签的选中状态
+   */
+  updateSelectedTags() {
+    // 获取已添加的动作名称
+    const addedExercises = [];
     const list = document.getElementById('exerciseList');
-    list.querySelectorAll('.exercise-item').forEach((item, idx) => {
-      item.id = `exercise-${idx}`;
-      item.querySelectorAll('[name]').forEach(input => {
-        const name = input.name;
-        input.name = name.replace(/\d+/, idx);
+    if (list) {
+      list.querySelectorAll('.exercise-item').forEach(item => {
+        const nameInput = item.querySelector('[name^="exercise-"]');
+        if (nameInput && nameInput.value) {
+          addedExercises.push(nameInput.value);
+        }
       });
-      const starBtn = item.querySelector('.star-btn');
-      if (starBtn) starBtn.id = `star-${idx}`;
+    }
+    
+    // 更新标签选中状态
+    const tags = document.querySelectorAll('.exercise-tag');
+    tags.forEach(tag => {
+      const tagName = tag.textContent.replace('⭐', '').trim();
+      if (addedExercises.includes(tagName)) {
+        tag.classList.add('selected');
+      } else {
+        tag.classList.remove('selected');
+      }
     });
   },
 
@@ -440,11 +486,12 @@ const WorkoutModule = {
     
     const exercises = [];
     const list = document.getElementById('exerciseList');
-    list.querySelectorAll('.exercise-item').forEach((item, idx) => {
-      const name = item.querySelector(`[name="exercise-${idx}"]`)?.value;
-      const weight = parseFloat(item.querySelector(`[name="weight-${idx}"]`)?.value) || 0;
-      const repsStr = item.querySelector(`[name="reps-${idx}"]`)?.value || '';
-      const notes = item.querySelector(`[name="notes-${idx}"]`)?.value || '';
+    list.querySelectorAll('.exercise-item').forEach(item => {
+      const exerciseId = item.id;
+      const name = item.querySelector(`[name^="exercise-"]`)?.value;
+      const weight = parseFloat(item.querySelector(`[name^="weight-"]`)?.value) || 0;
+      const repsStr = item.querySelector(`[name^="reps-"]`)?.value || '';
+      const notes = item.querySelector(`[name^="notes-"]`)?.value || '';
       
       if (name) {
         const sets = repsStr.split('/').map(r => parseInt(r) || 0).filter(r => r > 0);
@@ -600,15 +647,36 @@ const WorkoutModule = {
    * 打开模板选择模态框
    */
   openTemplateModal() {
+    const recentWorkouts = appData.workouts.slice(-5);
+    
     Utils.showModal(`
       <div class="modal-header">
         <span>选择训练模板</span>
         <button class="modal-close" onclick="Utils.closeModal()">×</button>
       </div>
       
-      <button class="btn btn-secondary" style="margin-bottom: 16px;" onclick="WorkoutModule.openAddTemplateModal()">
-        ➕ 创建新模板
-      </button>
+      <div style="display: flex; gap: 8px; margin-bottom: 16px;">
+        <button class="btn btn-secondary" style="flex: 1;" onclick="WorkoutModule.openAddTemplateModal()">
+          ➕ 创建新模板
+        </button>
+        <button class="btn btn-primary" style="flex: 1;" onclick="WorkoutModule.createTemplateFromHistory()">
+          📊 从历史创建
+        </button>
+      </div>
+      
+      ${recentWorkouts.length > 0 ? `
+        <div style="margin-bottom: 16px;">
+          <div style="font-size: 13px; color: var(--text-muted); margin-bottom: 8px;">📝 快速从历史训练创建模板：</div>
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            ${recentWorkouts.map(w => `
+              <div class="history-workout-card" onclick="WorkoutModule.createTemplateFromWorkout('${w.date}')">
+                <div style="font-weight: 600;">${Utils.formatDate(w.date)}</div>
+                <div style="font-size: 12px; color: var(--text-muted);">${w.parts.join('+')} · ${w.exercises.length}个动作</div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      ` : ''}
       
       <div id="templateList">
         ${appData.templates.map(t => `
@@ -750,6 +818,58 @@ const WorkoutModule = {
       Utils.closeModal();
       this.openTemplateModal();
     });
+  },
+
+  /**
+   * 从历史训练创建模板
+   */
+  createTemplateFromHistory() {
+    Utils.closeModal();
+    Utils.showModal(`
+      <div class="modal-header">
+        <span>从历史训练创建模板</span>
+        <button class="modal-close" onclick="Utils.closeModal()">×</button>
+      </div>
+      <div style="max-height: 400px; overflow-y: auto;">
+        ${appData.workouts.length > 0 ? `
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            ${appData.workouts.slice(-10).reverse().map(w => `
+              <div class="history-workout-card" onclick="WorkoutModule.createTemplateFromWorkout('${w.date}')">
+                <div style="font-weight: 600;">${Utils.formatDate(w.date)}</div>
+                <div style="font-size: 12px; color: var(--text-muted);">${w.parts.join('+')} · ${w.exercises.length}个动作</div>
+                <div style="font-size: 12px; margin-top: 4px;">${w.exercises.map(e => e.name).join('、')}</div>
+              </div>
+            `).join('')}
+          </div>
+        ` : `<div style="text-align: center; padding: 32px; color: #999;">暂无训练记录</div>`}
+      </div>
+    `);
+  },
+
+  /**
+   * 从指定训练创建模板
+   * @param {string} date - 训练日期
+   */
+  createTemplateFromWorkout(date) {
+    const workout = appData.workouts.find(w => w.date === date);
+    if (!workout) return;
+    
+    const templateName = `${workout.parts.join('+')}训练模板`;
+    
+    const newTemplate = {
+      id: 'custom_' + Date.now(),
+      name: templateName,
+      parts: workout.parts,
+      exercises: workout.exercises.map(e => e.name),
+      createdAt: new Date().toISOString()
+    };
+    
+    appData.templates.push(newTemplate);
+    Storage.saveTemplates(appData.templates);
+    
+    Utils.closeModal();
+    Utils.showToast(`模板 "${templateName}" 创建成功！`);
+    this.openTemplateModal();
   },
 
   /**

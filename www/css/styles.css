@@ -99,6 +99,40 @@ body {
   margin-bottom: 8px;
 }
 
+.card-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.weight-input {
+  font-size: 48px;
+  font-weight: 700;
+  color: var(--primary);
+  background: transparent;
+  border: 2px dashed var(--primary);
+  border-radius: 10px;
+  padding: 10px;
+  width: 120px;
+  text-align: center;
+}
+
+.stat-input {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text);
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
 .card-value {
   font-size: 28px;
   font-weight: 700;
@@ -360,6 +394,210 @@ body {
 
 .delete-btn { color: var(--danger); background: none; border: none; cursor: pointer; font-size: 18px; padding: 4px; }
 
+/* 折叠按钮 */
+.collapse-btn {
+  width: 100%;
+  padding: 10px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 14px;
+  color: var(--text-muted);
+  cursor: pointer;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.collapse-btn:hover {
+  background: var(--border);
+}
+
+/* 动作标签 */
+.exercise-tag {
+  padding: 8px 12px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 13px;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.2s;
+}
+
+.exercise-tag:hover {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+}
+
+.exercise-tag.starred {
+  background: #FEF3C7;
+  border-color: #F59E0B;
+}
+
+.exercise-tag.selected {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+}
+
+/* 已添加的动作高亮 */
+.exercise-item.selected {
+  background: #EFF6FF;
+  border: 2px solid var(--primary);
+}
+
+/* 历史训练卡片 */
+.history-workout-card {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.history-workout-card:hover {
+  background: #EFF6FF;
+  border-color: var(--primary);
+}
+
+/* 身体状态卡片 */
+.body-status-card {
+  padding: 20px;
+}
+
+.body-status-main {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.weight-display {
+  text-align: center;
+}
+
+.weight-value {
+  font-size: 48px;
+  font-weight: 700;
+  color: var(--primary);
+  line-height: 1;
+}
+
+.weight-unit {
+  font-size: 16px;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+.weight-change {
+  font-size: 14px;
+  font-weight: 600;
+  margin-top: 8px;
+}
+
+.weight-change.positive {
+  color: var(--danger);
+}
+
+.weight-change.negative {
+  color: var(--secondary);
+}
+
+.bmi-display {
+  text-align: center;
+}
+
+.bmi-circle {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #1E293B;
+}
+
+.bmi-circle.normal {
+  background: linear-gradient(135deg, var(--secondary), #059669);
+}
+
+.bmi-circle.underweight {
+  background: linear-gradient(135deg, #3B82F6, #1D4ED8);
+}
+
+.bmi-circle.overweight {
+  background: linear-gradient(135deg, #F59E0B, #D97706);
+}
+
+.bmi-circle.obese {
+  background: linear-gradient(135deg, var(--danger), #DC2626);
+}
+
+.bmi-value {
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.bmi-label {
+  font-size: 10px;
+  opacity: 0.9;
+}
+
+.bmi-category {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-top: 8px;
+  font-weight: 500;
+}
+
+.body-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.stat-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--bg);
+  padding: 12px;
+  border-radius: 10px;
+}
+
+.stat-icon {
+  font-size: 24px;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: white;
+  border-radius: 10px;
+}
+
+.stat-info {
+  flex: 1;
+}
+
+.stat-info .stat-value {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.stat-info .stat-label {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
 .empty-state {
   text-align: center;
   padding: 40px 20px;
@@ -487,10 +725,10 @@ body {
 
 .toast-container {
   position: fixed;
-  bottom: 100px;
+  top: 100px;
   left: 50%;
   transform: translateX(-50%);
-  z-index: 300;
+  z-index: 1000;
   width: 100%;
   max-width: 480px;
   padding: 0 16px;
@@ -505,21 +743,21 @@ body {
   justify-content: space-between;
   align-items: center;
   box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-  animation: toastIn 0.3s ease-out;
+  animation: toastInTop 0.3s ease-out;
 }
 
 .toast.toast-out {
-  animation: toastOut 0.3s ease-out forwards;
+  animation: toastOutTop 0.3s ease-out forwards;
 }
 
-@keyframes toastIn {
-  from { opacity: 0; transform: translateY(20px); }
+@keyframes toastInTop {
+  from { opacity: 0; transform: translateY(-20px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
-@keyframes toastOut {
+@keyframes toastOutTop {
   from { opacity: 1; transform: translateY(0); }
-  to { opacity: 0; transform: translateY(20px); }
+  to { opacity: 0; transform: translateY(-20px); }
 }
 
 .toast-message { flex: 1; font-size: 14px; }

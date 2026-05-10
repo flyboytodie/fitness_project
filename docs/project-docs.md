@@ -591,6 +591,100 @@ function importData(jsonData) {
 
 **代码位置**: `www/js/settings.js:101-118`（UI）、`www/js/settings.js:1098-1155`（功能实现）
 
+### 9.8 Toast 提示被遮挡
+
+**问题**: Toast 提示显示在页面底部，当页面很长时无法看到
+
+**原因**: Toast 容器定位在底部（`bottom: 100px`），滚动页面后会被遮挡
+
+**解决方案**: 
+- 将 Toast 容器移到页面顶部（`top: 100px`）
+- 设置最高层级（`z-index: 1000`）确保不被遮挡
+- 修改动画方向为从上方滑入
+
+**代码位置**: `www/js/utils.js:40-99`（showToast 函数）、`www/css/styles.css:692-727`（Toast 样式）
+
+### 9.9 calculateBMR 函数缺失
+
+**问题**: 身体页面无法进入，报错 `TypeError: Utils.calculateBMR is not a function`
+
+**原因**: `body.js` 调用了 `Utils.calculateBMR()` 但 `utils.js` 中没有定义
+
+**解决方案**: 
+- 在 `utils.js` 中添加 `calculateBMR()` 函数
+- 使用 Mifflin-St Jeor 公式计算基础代谢率
+
+**代码位置**: `www/js/utils.js:235-254`
+
+### 9.10 BMI 字体不可读
+
+**问题**: BMI 圆形卡片中的文字看不见
+
+**原因**: 文字颜色为白色，与渐变背景对比度不足
+
+**解决方案**: 
+- 将文字颜色改为深色（`#1E293B`）
+- 移除文字阴影
+
+**代码位置**: `www/css/styles.css:516-525`
+
+### 9.11 身体数据编辑模式
+
+**功能**: 身体数据页面支持手动编辑各项指标
+
+**实现**: 
+- 添加 `isEditing` 状态管理
+- 点击"✏️ 编辑"按钮进入编辑模式
+- 支持编辑：体重、身高、胸围、腰围、臀围、大腿围
+- 点击"✓ 保存"按钮保存修改
+
+**代码位置**: `www/js/body.js:7-69`（编辑模式逻辑）、`www/js/body.js:107-209`（UI）
+
+### 9.12 重复动作删除问题
+
+**问题**: 添加相同动作后，删除只能删除一个
+
+**原因**: 删除时使用索引定位，相同动作会导致索引冲突
+
+**解决方案**: 
+- 为每个动作生成唯一ID（`ex-时间戳-随机数`）
+- 删除时根据ID定位，不再更新索引
+
+**代码位置**: `www/js/workout.js:200-243`（addExerciseByName）、`www/js/workout.js:433-444`（removeExercise）
+
+### 9.13 动作列表可隐藏
+
+**功能**: 训练编辑页面的动作列表支持折叠
+
+**实现**: 
+- 添加"展开/收起动作列表"按钮
+- 默认收起状态，节省屏幕空间
+- 点击可展开完整动作列表
+
+**代码位置**: `www/js/workout.js:356-370`（toggleExerciseList）
+
+### 9.14 动作选中高亮
+
+**功能**: 已添加的动作在列表中高亮显示
+
+**实现**: 
+- 动作标签选中后添加 `selected` 类显示蓝色背景
+- 已添加的动作项显示蓝色边框
+- 删除动作后自动更新标签选中状态
+
+**代码位置**: `www/js/workout.js:446-472`（updateSelectedTags）、`www/css/styles.css:406-416`（选中样式）
+
+### 9.15 训练模板增强
+
+**功能**: 支持从历史训练记录创建模板
+
+**实现**: 
+- 新增"从历史创建"按钮
+- 快速从最近5条训练记录创建模板
+- 支持从任意历史训练创建模板
+
+**代码位置**: `www/js/workout.js:823-873`（createTemplateFromHistory、createTemplateFromWorkout）
+
 ---
 
 ## 十、调试指南

@@ -160,11 +160,21 @@ const SettingsModule = {
         Storage.updateSettings({ calorieGoal: tdee });
         document.getElementById('settingsCalorieGoal').value = tdee;
         Utils.showToast(`已根据您的信息设置目标为 ${tdee} 千卡`);
+        
+        // 如果当前在身体页面，刷新页面显示更新后的信息
+        if (window.currentPage === 'body') {
+          navigateTo('body');
+        }
         return;
       }
     }
     
     Utils.showToast('个人信息已保存');
+    
+    // 如果当前在身体页面，刷新页面显示更新后的信息
+    if (window.currentPage === 'body') {
+      navigateTo('body');
+    }
   },
 
   /**
