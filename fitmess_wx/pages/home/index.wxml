@@ -1,0 +1,53 @@
+<view class="container">
+  <view class="header-card">
+    <view class="greeting-row">
+      <text class="greeting-text">🏋️ 健身追踪</text>
+      <text class="date-text">{{currentDate}}</text>
+    </view>
+    <view class="week-progress">
+      <view class="progress-header">
+        <text class="progress-label">本周训练进度</text>
+        <text class="progress-value">{{weekProgress}}%</text>
+      </view>
+      <view class="progress-bar">
+        <view class="progress-fill" style="width: {{weekProgress}}%"></view>
+      </view>
+      <text class="progress-hint">目标: 完成{{weeklyGoal}}天训练</text>
+    </view>
+  </view>
+
+  <view class="stats-card">
+    <view class="stats-grid">
+      <view class="stat-item" bindtap="goToWorkout">
+        <text class="stat-value">{{todayWorkout ? '✓' : '—'}}</text>
+        <text class="stat-label">今日训练</text>
+      </view>
+      <view class="stat-item" bindtap="goToDiet">
+        <text class="stat-value">{{todayCalories}}</text>
+        <text class="stat-label">今日千卡</text>
+      </view>
+      <view class="stat-item" bindtap="goToBody">
+        <text class="stat-value">{{latestWeight}}</text>
+        <text class="stat-label">{{latestWeight ? 'kg' : '体重'}}</text>
+      </view>
+      <view class="stat-item" bindtap="showStreakInfo">
+        <text class="stat-value streak">🔥{{streak}}</text>
+        <text class="stat-label">连续天数</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="quick-actions">
+    <button class="btn btn-primary" bindtap="goToWorkout">开始训练</button>
+    <button class="btn btn-secondary" bindtap="goToDiet">记录饮食</button>
+  </view>
+
+  <view wx:if="{{recentWorkouts.length > 0}}" class="card">
+    <view class="card-title">最近训练</view>
+    <view wx:for="{{recentWorkouts}}" wx:key="date" class="history-item" bindtap="viewWorkout" data-date="{{item.date}}">
+      <text class="history-date">{{item.dateStr}}</text>
+      <text class="history-parts">{{item.parts}}</text>
+      <text class="history-sets">{{item.sets}}组</text>
+    </view>
+  </view>
+</view>

@@ -1,0 +1,45 @@
+<view class="container">
+  <view class="page-header">
+    <button class="back-btn" bindtap="goBack">← 返回</button>
+    <text class="page-title">数据分析</text>
+    <text class="placeholder"></text>
+  </view>
+
+  <view class="summary-card">
+    <view class="summary-item">
+      <text class="summary-value">{{totalWorkouts}}</text>
+      <text class="summary-label">总训练次数</text>
+    </view>
+    <view class="summary-item">
+      <text class="summary-value">{{totalSets}}</text>
+      <text class="summary-label">总组数</text>
+    </view>
+    <view class="summary-item">
+      <text class="summary-value">{{totalWeight}}</text>
+      <text class="summary-label">总负重(kg)</text>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="card-title">部位分布</view>
+    <view wx:for="{{partStats}}" wx:key="name" class="part-row">
+      <text class="part-name">{{item.name}}</text>
+      <view class="part-bar-container">
+        <view class="part-bar" style="width: {{item.percentage}}%"></view>
+      </view>
+      <text class="part-count">{{item.count}}次 ({{item.percentage}}%)</text>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="card-title">训练频率</view>
+    <view class="frequency-chart">
+      <view wx:for="{{frequencyData}}" wx:key="day" class="frequency-bar-item">
+        <view class="frequency-bar-wrapper">
+          <view class="frequency-bar" style="height: {{maxCount > 0 ? (item.count / maxCount) * 100 : 0}}%"></view>
+        </view>
+        <text class="frequency-day">{{item.day}}</text>
+      </view>
+    </view>
+  </view>
+</view>

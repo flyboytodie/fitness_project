@@ -1,0 +1,35 @@
+{
+  "pages": [
+    "pages/home/index",
+    "pages/workout/index",
+    "pages/diet/index",
+    "pages/body/index",
+    "pages/settings/index",
+    "pages/workout/add",
+    "pages/workout/detail",
+    "pages/diet/add",
+    "pages/diet/detail",
+    "pages/body/add",
+    "pages/body/detail",
+    "pages/analysis/index",
+    "pages/exercise/index"
+  ],
+  "window": {
+    "backgroundTextStyle": "dark",
+    "navigationBarBackgroundColor": "#FFFFFF",
+    "navigationBarTitleText": "健身追踪",
+    "navigationBarTextStyle": "black"
+  },
+  "tabBar": {
+    "color": "#64748B",
+    "selectedColor": "#2563EB",
+    "borderStyle": "black",
+    "list": [
+      { "pagePath": "pages/home/index", "text": "首页" },
+      { "pagePath": "pages/workout/index", "text": "训练" },
+      { "pagePath": "pages/diet/index", "text": "饮食" },
+      { "pagePath": "pages/body/index", "text": "身体" },
+      { "pagePath": "pages/settings/index", "text": "设置" }
+    ]
+  }
+}

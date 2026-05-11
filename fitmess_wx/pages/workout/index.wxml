@@ -1,0 +1,28 @@
+<view class="container">
+  <view class="page-header">
+    <text class="page-title">训练记录</text>
+    <button class="btn btn-primary" bindtap="openAddWorkoutModal">➕ 记录训练</button>
+  </view>
+
+  <view wx:if="{{workouts.length > 0}}" class="workout-list">
+    <view wx:for="{{workouts}}" wx:key="date" class="card workout-card" bindtap="viewWorkout" data-date="{{item.date}}">
+      <view class="workout-header">
+        <text class="workout-date">{{item.dateStr}}</text>
+        <text class="workout-parts">{{item.parts}}</text>
+      </view>
+      <view class="workout-content">
+        <view wx:for="{{item.exercises}}" wx:key="name" class="exercise-row">
+          <text class="exercise-name">{{item.name}}</text>
+          <text class="exercise-detail">{{item.weight}}kg × {{item.sets.join('/')}}</text>
+        </view>
+      </view>
+      <view class="workout-arrow">›</view>
+    </view>
+  </view>
+
+  <view wx:else class="empty-state">
+    <text class="empty-icon">🏋️</text>
+    <text class="empty-title">暂无训练记录</text>
+    <button class="btn btn-primary" bindtap="openAddWorkoutModal">开始训练</button>
+  </view>
+</view>

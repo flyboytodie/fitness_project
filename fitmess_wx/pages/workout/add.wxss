@@ -1,0 +1,189 @@
+.container {
+  padding: 24rpx;
+  padding-bottom: calc(env(safe-area-inset-bottom) + 140rpx);
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24rpx;
+}
+
+.back-btn {
+  font-size: 32rpx;
+  padding: 12rpx;
+  color: #2563EB;
+}
+
+.page-title {
+  font-size: 36rpx;
+  font-weight: 700;
+  color: #1E293B;
+}
+
+.placeholder {
+  width: 80rpx;
+}
+
+.card {
+  background: #fff;
+  border-radius: 20rpx;
+  padding: 24rpx;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.06);
+  margin-bottom: 20rpx;
+}
+
+.form-item {
+  margin-bottom: 24rpx;
+}
+
+.form-item:last-child {
+  margin-bottom: 0;
+}
+
+.form-label {
+  font-size: 26rpx;
+  color: #64748B;
+  margin-bottom: 16rpx;
+  display: block;
+}
+
+.form-value {
+  padding: 20rpx;
+  background: #F8FAFC;
+  border-radius: 14rpx;
+  font-size: 28rpx;
+}
+
+.parts-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12rpx;
+}
+
+.part-item {
+  padding: 16rpx;
+  background: #F8FAFC;
+  border-radius: 12rpx;
+  text-align: center;
+  font-size: 24rpx;
+}
+
+.part-item.selected {
+  background: #2563EB;
+  color: #fff;
+}
+
+.card-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20rpx;
+}
+
+.card-title-row text {
+  font-size: 28rpx;
+  font-weight: 600;
+}
+
+.add-btn {
+  padding: 12rpx 24rpx;
+  background: #2563EB;
+  color: #fff;
+  border: none;
+  border-radius: 12rpx;
+  font-size: 26rpx;
+  font-weight: 600;
+}
+
+.exercise-card {
+  background: #F8FAFC;
+  border-radius: 16rpx;
+  padding: 20rpx;
+  margin-bottom: 16rpx;
+}
+
+.exercise-card:last-child {
+  margin-bottom: 0;
+}
+
+.exercise-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16rpx;
+}
+
+.exercise-select {
+  padding: 16rpx 20rpx;
+  background: #fff;
+  border-radius: 12rpx;
+  font-size: 26rpx;
+}
+
+.delete-btn {
+  width: 48rpx;
+  height: 48rpx;
+  background: #EF4444;
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  font-size: 28rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.exercise-inputs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16rpx;
+}
+
+.input-group {}
+
+.input-label {
+  font-size: 24rpx;
+  color: #64748B;
+  margin-bottom: 8rpx;
+  display: block;
+}
+
+.form-input {
+  padding: 16rpx;
+  background: #fff;
+  border-radius: 12rpx;
+  border: 2rpx solid #E2E8F0;
+  font-size: 26rpx;
+  box-sizing: border-box;
+}
+
+.btn {
+  padding: 22rpx;
+  border-radius: 14rpx;
+  font-size: 28rpx;
+  font-weight: 600;
+  border: none;
+  width: 100%;
+}
+
+.btn-primary {
+  background: #2563EB;
+  color: #fff;
+}
+
+.submit-btn {
+  margin-top: 24rpx;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 24rpx 24rpx calc(env(safe-area-inset-bottom) + 24rpx);
+  background: #fff;
+  box-shadow: 0 -4rpx 12rpx rgba(0, 0, 0, 0.06);
+}
+
+.submit-btn .btn {
+  width: 100%;
+}

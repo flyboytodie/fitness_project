@@ -1,0 +1,8 @@
+<view class="container">
+  <view class="page-header">
+    <button class="back-btn" bindtap="goBack">← 返回</button>
+    <text class="page-title">添加身体数据</text>
+    <text class="placeholder"></text>
+  </view>
+  <button class="btn btn-primary submit-btn" bindtap="saveBody">保存记录</button>
+</view>

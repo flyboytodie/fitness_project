@@ -1,0 +1,55 @@
+<view class="container">
+  <view class="page-header">
+    <button class="back-btn" bindtap="goBack">← 返回</button>
+    <text class="page-title">记录饮食</text>
+    <text class="placeholder"></text>
+  </view>
+
+  <view class="card">
+    <view class="form-item">
+      <text class="form-label">日期</text>
+      <picker mode="date" value="{{date}}" bindchange="selectDate">
+        <view class="form-value">{{date}}</view>
+      </picker>
+    </view>
+
+    <view class="form-item">
+      <text class="form-label">时间</text>
+      <picker mode="time" value="{{time}}" bindchange="selectTime">
+        <view class="form-value">{{time}}</view>
+      </picker>
+    </view>
+
+    <view class="form-item">
+      <text class="form-label">食物名称</text>
+      <input placeholder="例如：米饭" value="{{name}}" bindinput="setName" class="form-input" />
+    </view>
+
+    <view class="form-item">
+      <text class="form-label">份量(克)</text>
+      <input type="number" placeholder="0" value="{{serving}}" bindinput="setServing" class="form-input" />
+    </view>
+
+    <view class="form-item">
+      <text class="form-label">热量(kcal)</text>
+      <input type="number" placeholder="0" value="{{calories}}" bindinput="setCalories" class="form-input" />
+    </view>
+
+    <view class="nutrition-row">
+      <view class="nutrition-input">
+        <text class="form-label">蛋白质(g)</text>
+        <input type="number" placeholder="0" value="{{protein}}" bindinput="setProtein" class="form-input small" />
+      </view>
+      <view class="nutrition-input">
+        <text class="form-label">碳水(g)</text>
+        <input type="number" placeholder="0" value="{{carbs}}" bindinput="setCarbs" class="form-input small" />
+      </view>
+      <view class="nutrition-input">
+        <text class="form-label">脂肪(g)</text>
+        <input type="number" placeholder="0" value="{{fat}}" bindinput="setFat" class="form-input small" />
+      </view>
+    </view>
+  </view>
+
+  <button class="btn btn-primary submit-btn" bindtap="saveDiet">保存记录</button>
+</view>

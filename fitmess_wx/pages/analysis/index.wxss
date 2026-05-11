@@ -1,0 +1,143 @@
+.container {
+  padding: 24rpx;
+  padding-bottom: calc(env(safe-area-inset-bottom) + 140rpx);
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24rpx;
+}
+
+.back-btn {
+  font-size: 32rpx;
+  padding: 12rpx;
+  color: #2563EB;
+}
+
+.page-title {
+  font-size: 36rpx;
+  font-weight: 700;
+  color: #1E293B;
+}
+
+.placeholder {
+  width: 80rpx;
+}
+
+.summary-card {
+  background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%);
+  border-radius: 24rpx;
+  padding: 32rpx;
+  margin-bottom: 20rpx;
+  color: #fff;
+}
+
+.summary-item {
+  text-align: center;
+}
+
+.summary-value {
+  font-size: 48rpx;
+  font-weight: 700;
+  display: block;
+}
+
+.summary-label {
+  font-size: 24rpx;
+  opacity: 0.9;
+  margin-top: 8rpx;
+  display: block;
+}
+
+.card {
+  background: #fff;
+  border-radius: 20rpx;
+  padding: 24rpx;
+  margin-bottom: 20rpx;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.06);
+}
+
+.card-title {
+  font-size: 28rpx;
+  font-weight: 600;
+  margin-bottom: 20rpx;
+  color: #1E293B;
+}
+
+.part-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 16rpx;
+}
+
+.part-row:last-child {
+  margin-bottom: 0;
+}
+
+.part-name {
+  width: 120rpx;
+  font-size: 26rpx;
+}
+
+.part-bar-container {
+  flex: 1;
+  height: 16rpx;
+  background: #F1F5F9;
+  border-radius: 8rpx;
+  margin: 0 16rpx;
+  overflow: hidden;
+}
+
+.part-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #2563EB, #10B981);
+  border-radius: 8rpx;
+  transition: width 0.3s ease-out;
+}
+
+.part-count {
+  font-size: 24rpx;
+  color: #64748B;
+  width: 120rpx;
+  text-align: right;
+}
+
+.frequency-chart {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  height: 200rpx;
+  padding-top: 20rpx;
+}
+
+.frequency-bar-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+}
+
+.frequency-bar-wrapper {
+  width: 40rpx;
+  height: 160rpx;
+  background: #F1F5F9;
+  border-radius: 8rpx;
+  display: flex;
+  align-items: flex-end;
+  overflow: hidden;
+}
+
+.frequency-bar {
+  width: 100%;
+  background: linear-gradient(180deg, #2563EB, #1D4ED8);
+  border-radius: 8rpx;
+  transition: height 0.3s ease-out;
+}
+
+.frequency-day {
+  font-size: 22rpx;
+  color: #64748B;
+  margin-top: 12rpx;
+}

@@ -1,0 +1,51 @@
+<view class="container">
+  <view class="page-header">
+    <button class="back-btn" bindtap="goBack">← 返回</button>
+    <text class="page-title">饮食详情</text>
+    <text class="placeholder"></text>
+  </view>
+
+  <view wx:if="{{diet}}" class="card">
+    <view class="diet-name-card">
+      <text class="diet-name">{{diet.name}}</text>
+      <text class="diet-time">{{diet.date}} {{diet.time}}</text>
+    </view>
+
+    <view class="info-section">
+      <view class="info-item">
+        <text class="info-label">份量</text>
+        <text class="info-value">{{diet.serving}}g</text>
+      </view>
+      <view class="info-item">
+        <text class="info-label">热量</text>
+        <text class="info-value calories">{{diet.calories}} kcal</text>
+      </view>
+    </view>
+
+    <view class="nutrition-section">
+      <text class="section-title">营养成分</text>
+      <view class="nutrition-grid">
+        <view class="nutrition-card">
+          <text class="nutrition-value">{{diet.protein}}</text>
+          <text class="nutrition-label">蛋白质(g)</text>
+        </view>
+        <view class="nutrition-card">
+          <text class="nutrition-value">{{diet.carbs}}</text>
+          <text class="nutrition-label">碳水(g)</text>
+        </view>
+        <view class="nutrition-card">
+          <text class="nutrition-value">{{diet.fat}}</text>
+          <text class="nutrition-label">脂肪(g)</text>
+        </view>
+      </view>
+    </view>
+
+    <button class="btn btn-danger" bindtap="deleteDiet">删除记录</button>
+  </view>
+
+  <view wx:else class="empty-state">
+    <text class="empty-icon">🍎</text>
+    <text class="empty-title">记录不存在</text>
+    <button class="btn btn-primary" bindtap="goBack">返回</button>
+  </view>
+</view>

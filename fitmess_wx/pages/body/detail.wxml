@@ -1,0 +1,71 @@
+<view class="container">
+  <view class="page-header">
+    <button class="back-btn" bindtap="goBack">← 返回</button>
+    <text class="page-title">身体数据详情</text>
+    <text class="placeholder"></text>
+  </view>
+
+  <view wx:if="{{record}}" class="card">
+    <view class="date-card">
+      <text class="record-date">{{record.date}}</text>
+    </view>
+
+    <view class="weight-section">
+      <text class="weight-value">{{record.weight}}</text>
+      <text class="weight-unit">kg</text>
+    </view>
+
+    <view wx:if="{{previousRecord && comparison.weightChange != '0.0'}}" class="comparison-card">
+      <view class="comparison-header">
+        <text class="comparison-title">对比上次记录 ({{previousRecord.date}})</text>
+      </view>
+      <view class="comparison-content">
+        <view class="comparison-item">
+          <text class="comparison-label">体重变化</text>
+          <text class="comparison-value" style="color: {{parseFloat(comparison.weightChange) > 0 ? '#EF4444' : '#10B981'}}">
+            {{parseFloat(comparison.weightChange) > 0 ? '+' : ''}}{{comparison.weightChange}}kg
+          </text>
+        </view>
+        <view class="comparison-item">
+          <text class="comparison-label">BMI变化</text>
+          <text class="comparison-value" style="color: {{parseFloat(comparison.bmiChange) > 0 ? '#EF4444' : '#10B981'}}">
+            {{parseFloat(comparison.bmiChange) > 0 ? '+' : ''}}{{comparison.bmiChange}}
+          </text>
+        </view>
+      </view>
+    </view>
+
+    <view class="stats-grid">
+      <view class="stat-card">
+        <text class="stat-label">身高</text>
+        <text class="stat-value">{{record.height}}cm</text>
+      </view>
+      <view class="stat-card">
+        <text class="stat-label">BMI</text>
+        <text class="stat-value" style="color: {{record.bmiColor}}">{{record.bmi}}</text>
+        <text class="stat-status" style="color: {{record.bmiColor}}">{{record.bmiText}}</text>
+      </view>
+      <view class="stat-card">
+        <text class="stat-label">体脂率</text>
+        <text class="stat-value">{{record.bodyFat}}%</text>
+      </view>
+      <view class="stat-card">
+        <text class="stat-label">肌肉量</text>
+        <text class="stat-value">{{record.muscle}}kg</text>
+      </view>
+      <view class="stat-card full">
+        <text class="stat-label">基础代谢</text>
+        <text class="stat-value">{{record.bmr}}</text>
+        <text class="stat-unit">kcal/天</text>
+      </view>
+    </view>
+
+    <button class="btn btn-danger" bindtap="deleteRecord">删除记录</button>
+  </view>
+
+  <view wx:else class="empty-state">
+    <text class="empty-icon">⚖️</text>
+    <text class="empty-title">记录不存在</text>
+    <button class="btn btn-primary" bindtap="goBack">返回</button>
+  </view>
+</view>

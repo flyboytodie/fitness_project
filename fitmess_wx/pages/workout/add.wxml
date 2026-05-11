@@ -1,0 +1,54 @@
+<view class="container">
+  <view class="page-header">
+    <button class="back-btn" bindtap="goBack">← 返回</button>
+    <text class="page-title">记录训练</text>
+    <text class="placeholder"></text>
+  </view>
+
+  <view class="card">
+    <view class="form-item">
+      <text class="form-label">训练日期</text>
+      <picker mode="date" value="{{date}}" bindchange="selectDate">
+        <view class="form-value">{{date}}</view>
+      </picker>
+    </view>
+
+    <view class="form-item">
+      <text class="form-label">训练部位</text>
+      <view class="parts-grid">
+        <view wx:for="{{parts}}" wx:key="*this" class="part-item {{selectedParts.indexOf(item) >= 0 ? 'selected' : ''}}" bindtap="selectPart" data-part="{{item}}">
+          {{item}}
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="card-title-row">
+      <text>训练动作</text>
+      <button class="add-btn" bindtap="addExercise">➕ 添加动作</button>
+    </view>
+
+    <view wx:for="{{exercises}}" wx:key="id" class="exercise-card">
+      <view class="exercise-header">
+        <picker mode="selector" range="{{exerciseNames}}" bindchange="selectExercise" data-id="{{item.id}}">
+          <view class="exercise-select">{{item.name || '选择动作'}}</view>
+        </picker>
+        <button class="delete-btn" bindtap="deleteExercise" data-id="{{item.id}}">×</button>
+      </view>
+
+      <view class="exercise-inputs">
+        <view class="input-group">
+          <text class="input-label">重量(kg)</text>
+          <input type="number" placeholder="0" value="{{item.weight}}" bindinput="setWeight" data-id="{{item.id}}" class="form-input" />
+        </view>
+        <view class="input-group">
+          <text class="input-label">次数(如:8/8/8)</text>
+          <input type="text" placeholder="8/8/8" value="{{item.setsStr}}" bindinput="setSets" data-id="{{item.id}}" class="form-input" />
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <button class="btn btn-primary submit-btn" bindtap="saveWorkout">保存训练</button>
+</view>

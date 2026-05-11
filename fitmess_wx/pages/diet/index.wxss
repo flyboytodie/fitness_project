@@ -1,0 +1,160 @@
+.container {
+  padding: 24rpx;
+  padding-bottom: calc(env(safe-area-inset-bottom) + 140rpx);
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24rpx;
+}
+
+.page-title {
+  font-size: 36rpx;
+  font-weight: 700;
+  color: #1E293B;
+}
+
+.btn {
+  padding: 16rpx 28rpx;
+  border-radius: 12rpx;
+  font-size: 26rpx;
+  font-weight: 600;
+  border: none;
+}
+
+.btn-primary {
+  background: #2563EB;
+  color: #fff;
+}
+
+.calories-card {
+  background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+  border-radius: 24rpx;
+  padding: 28rpx;
+  margin-bottom: 20rpx;
+  color: #fff;
+}
+
+.calories-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 24rpx;
+}
+
+.calories-label {
+  font-size: 26rpx;
+  opacity: 0.9;
+}
+
+.calories-value {
+  font-size: 52rpx;
+  font-weight: 700;
+}
+
+.nutrition-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16rpx;
+}
+
+.nutrition-item {
+  text-align: center;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 16rpx;
+  padding: 16rpx;
+}
+
+.nutrition-value {
+  font-size: 32rpx;
+  font-weight: 700;
+  display: block;
+}
+
+.nutrition-label {
+  font-size: 20rpx;
+  opacity: 0.8;
+  margin-top: 4rpx;
+  display: block;
+}
+
+.card {
+  background: #fff;
+  border-radius: 20rpx;
+  padding: 24rpx;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.06);
+}
+
+.card-title {
+  font-size: 28rpx;
+  font-weight: 600;
+  margin-bottom: 16rpx;
+  color: #1E293B;
+}
+
+.diet-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+}
+
+.diet-item {
+  display: flex;
+  align-items: center;
+  padding: 20rpx 0;
+  border-bottom: 1rpx solid #E2E8F0;
+}
+
+.diet-item:last-child {
+  border-bottom: none;
+}
+
+.diet-info {
+  flex: 1;
+}
+
+.diet-name {
+  font-size: 28rpx;
+  font-weight: 500;
+  display: block;
+}
+
+.diet-detail {
+  font-size: 24rpx;
+  color: #64748B;
+  margin-top: 4rpx;
+  display: block;
+}
+
+.diet-calories {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #2563EB;
+  margin-right: 16rpx;
+}
+
+.diet-arrow {
+  font-size: 32rpx;
+  color: #94A3B8;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 80rpx 40rpx;
+}
+
+.empty-icon {
+  font-size: 100rpx;
+  margin-bottom: 24rpx;
+  display: block;
+}
+
+.empty-title {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #1E293B;
+  margin-bottom: 24rpx;
+  display: block;
+}

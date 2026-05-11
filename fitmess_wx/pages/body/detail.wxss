@@ -1,0 +1,55 @@
+.container { padding: 16px; }
+.page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+.back-btn { background: none; border: none; font-size: 16px; padding: 8px; }
+.page-title { font-size: 20px; font-weight: 700; }
+.placeholder { width: 60px; }
+
+.card { background: white; border-radius: 12px; padding: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+
+.date-card {
+  background: linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%);
+  border-radius: 12px;
+  padding: 16px;
+  color: white;
+  text-align: center;
+  margin-bottom: 16px;
+}
+.record-date { font-size: 18px; font-weight: 600; }
+
+.weight-section { display: flex; align-items: baseline; justify-content: center; margin-bottom: 16px; }
+.weight-value { font-size: 48px; font-weight: 700; color: #8B5CF6; }
+.weight-unit { font-size: 20px; margin-left: 8px; color: #64748B; }
+
+.comparison-card {
+  background: #FEF3C7;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+.comparison-header { margin-bottom: 12px; }
+.comparison-title { font-size: 14px; color: #D97706; font-weight: 600; }
+.comparison-content { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.comparison-item { background: rgba(255,255,255,0.8); border-radius: 8px; padding: 12px; text-align: center; }
+.comparison-label { display: block; font-size: 12px; color: #64748B; }
+.comparison-value { display: block; font-size: 20px; font-weight: 600; }
+
+.stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 16px; }
+.stat-card {
+  background: #F8FAFC;
+  border-radius: 8px;
+  padding: 12px;
+  text-align: center;
+}
+.stat-card.full { grid-column: span 2; }
+.stat-label { display: block; font-size: 12px; color: #64748B; }
+.stat-value { display: block; font-size: 18px; font-weight: 600; }
+.stat-status { display: block; font-size: 12px; }
+.stat-unit { font-size: 12px; color: #64748B; }
+
+.btn { padding: 14px; border-radius: 10px; font-size: 16px; font-weight: 600; border: none; width: 100%; }
+.btn-danger { background: #EF4444; color: white; }
+.btn-primary { background: #2563EB; color: white; }
+
+.empty-state { text-align: center; padding: 40px 20px; }
+.empty-icon { display: block; font-size: 64px; margin-bottom: 16px; }
+.empty-title { display: block; font-size: 18px; font-weight: 600; color: #1E293B; margin-bottom: 20px; }
